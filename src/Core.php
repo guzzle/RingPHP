@@ -18,17 +18,18 @@ class Core
      * @param mixed    $response
      * @param callable $onComplete A callable that is invoked when complete.
      *
-     * @return array|FutureResponse
+     * @return array|Future
      */
     public static function then($response, callable $onComplete)
     {
-        if ($response instanceof FutureResponse) {
+        if ($response instanceof Future) {
             return self::future(function () use ($response, $onComplete) {
-                $onComplete();
-                return Core::deref($response);
+                $response = Core::deref($response);
+                $onComplete($response);
+                return $response;
             });
         } else {
-            $onComplete();
+            $onComplete($response);
             return $response;
         }
     }
@@ -38,11 +39,11 @@ class Core
      *
      * @param callable $deref Callable that blocks until the response is complete
      *
-     * @return FutureResponse
+     * @return Future
      */
     public static function future(callable $deref)
     {
-        return new FutureResponse($deref);
+        return new Future($deref);
     }
 
     /**
@@ -56,7 +57,7 @@ class Core
      */
     public static function deref($response)
     {
-        return $response instanceof FutureResponse
+        return $response instanceof Future
             ? $response->deref()
             : $response;
     }

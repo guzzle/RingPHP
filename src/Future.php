@@ -9,7 +9,7 @@ namespace GuzzleHttp\Ring;
  *
  * @property array $data
  */
-class FutureResponse implements \ArrayAccess, \Countable, \IteratorAggregate
+class Future implements \ArrayAccess, \Countable, \IteratorAggregate
 {
     /** @var callable */
     private $deref;
