@@ -18,7 +18,11 @@
         }
     },
     "require-dev": {
-        "ext-curl": "*",
         "phpunit/phpunit": "~4.0"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
     }
 }

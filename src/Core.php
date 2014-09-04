@@ -9,6 +9,31 @@ use GuzzleHttp\Stream\StreamInterface;
 class Core
 {
     /**
+     * Wraps a response with a future response that invokes the provided
+     * callable when the response completes.
+     *
+     * If the response is not a future response, then the callable is
+     * invoked immediately.
+     *
+     * @param mixed    $response
+     * @param callable $onComplete A callable that is invoked when complete.
+     *
+     * @return array|FutureResponse
+     */
+    public static function then($response, callable $onComplete)
+    {
+        if ($response instanceof FutureResponse) {
+            return self::future(function () use ($response, $onComplete) {
+                $onComplete();
+                return Core::deref($response);
+            });
+        } else {
+            $onComplete();
+            return $response;
+        }
+    }
+
+    /**
      * Creates a future response using a callable as the dereferencing callable.
      *
      * @param callable $deref Callable that blocks until the response is complete
