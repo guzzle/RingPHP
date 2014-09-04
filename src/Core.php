@@ -76,15 +76,13 @@ class Core
      */
     public static function header(array $message, $header, $asString = false)
     {
-        if (!isset($message['headers'])) {
-            return null;
-        }
-
         $match = null;
 
         // Slight optimization for exact matches.
         if (isset($message['headers'][$header])) {
             $match = $message['headers'][$header];
+        } elseif (!isset($message['headers'])) {
+            return null;
         } else {
             foreach ($message['headers'] as $name => $value) {
                 if (!strcasecmp($name, $header)) {
@@ -94,11 +92,9 @@ class Core
             }
         }
 
-        if ($match && $asString && is_array($match)) {
-            return implode(', ', $match);
-        }
-
-        return $match;
+        return $match !== null && $asString && is_array($match)
+            ? implode(', ', $match)
+            : $match;
     }
 
     /**
@@ -181,34 +177,18 @@ class Core
         $headers = [];
 
         foreach ($lines as $line) {
-            $l = self::parseHeaderLine($line);
-            if (!isset($headers[$l[0]])) {
-                $headers[$l[0]] = $l[1];
-            } elseif (is_array($headers[$l[0]])) {
-                $headers[$l[0]][] = $l[1];
+            $parts = explode(':', $line, 2);
+            $key = trim($parts[0]);
+            $value = isset($parts[1]) ? trim($parts[1]) : null;
+            if (!isset($headers[$key])) {
+                $headers[$key] = $value;
+            } elseif (is_array($headers[$key])) {
+                $headers[$key][] = $value;
             } else {
-                $headers[$l[0]] = [$headers[$l[0]], $l[1]];
+                $headers[$key] = [$headers[$key], $value];
             }
         }
 
         return $headers;
-    }
-
-    /**
-     * Parses a header line into an array containing the key and value in
-     * positional elements.
-     *
-     * @param string $line Header line to parse
-     *
-     * @return array
-     */
-    public static function parseHeaderLine($line)
-    {
-        $headerParts = explode(':', $line, 2);
-
-        return [
-            $headerParts[0],
-            isset($headerParts[1]) ? trim($headerParts[1]) : ''
-        ];
     }
 }

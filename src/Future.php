@@ -65,10 +65,9 @@ class Future implements \ArrayAccess, \Countable, \IteratorAggregate
     /** @internal */
     public function __get($name)
     {
-        if ($name == 'data') {
-            $this->data = call_user_func($this->deref);
+        if ($name === 'data') {
+            $deref = $this->deref;
+            return $this->data = $deref();
         }
-
-        return $this->data;
     }
 }

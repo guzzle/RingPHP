@@ -128,6 +128,14 @@ decode_content
     Specify whether or not Content-Encoding responses (gzip, deflate, etc.) are
     automatically decoded.
 
+progress
+    (function)
+    Defines a function to invoke when transfer progress is made. The
+    function accepts the following arguments: the total number of bytes
+    expected to be downloaded, the number of bytes downloaded so far, the
+    number of bytes expected to be uploaded, and the number of bytes uploaded
+    so far.
+
 proxy
     (string, array)
     Pass a string to specify an HTTP proxy, or an associative array to specify

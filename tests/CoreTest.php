@@ -7,44 +7,6 @@ use GuzzleHttp\Stream\Stream;
 
 class CoreTest extends \PHPUnit_Framework_TestCase
 {
-    public function testThenReturnsFuture()
-    {
-        $future = new Future(function () {
-            return ['status' => 200];
-        });
-
-        $called = false;
-        $newFuture = Core::then($future, function ($response) use (&$called) {
-            $this->assertSame(['status' => 200], $response);
-            $called = true;
-        });
-
-        $this->assertInstanceOf('GuzzleHttp\Ring\Future', $newFuture);
-        Core::deref($newFuture);
-        $this->assertTrue($called);
-    }
-
-    public function testThenCallsImmediatelyWhenNotFuture()
-    {
-        $res = ['status' => 200];
-
-        $called = false;
-        $newArray = Core::then($res, function ($response) use ($res, &$called) {
-            $this->assertSame($res, $response);
-            $called = true;
-        });
-
-        $this->assertInternalType('array', $newArray);
-        $this->assertTrue($called);
-    }
-
-    public function testFutureReturnsFutureResponse()
-    {
-        $future = Core::future(function () { return ['status' => 200]; });
-        $this->assertInstanceOf('GuzzleHttp\Ring\Future', $future);
-        $this->assertEquals(200, $future['status']);
-    }
-
     public function testDerefReturnsArray()
     {
         $res = ['status' => 200];
@@ -53,7 +15,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
 
     public function testDerefReturnsArrayWhenFuture()
     {
-        $future = Core::future(function () { return ['status' => 200]; });
+        $future = new Future(function () { return ['status' => 200]; });
         $this->assertInternalType('array', Core::deref($future));
     }
 
