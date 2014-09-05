@@ -108,6 +108,11 @@ future
     ``GuzzleHttp\Ring\Future`` objects which act like associative arrays but
     are fulfilled asynchronously or when they are accessed.
 
+    Future responses created by asynchronous adapters MUST attempt to complete
+    any outstanding future responses when a process completes. Asynchronous
+    adapter MAY choose to automatically complete responses when the number
+    of outstanding requests reaches an adapter-specific threshold.
+
 Response Array
 --------------
 
