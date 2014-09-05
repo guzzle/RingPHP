@@ -83,9 +83,9 @@ request_method
 
 headers
     (required, array)
-    Associative array of headers. Each key represents the header name. Values
-    can be strings or arrays. When an array is provided, it means the header
-    is sent using multiple lines.
+    Associative array of headers. Each key represents the header name. Each
+    value contains an array of strings where each entry of the array SHOULD be
+    sent over the wire on a separate header line.
 
 body
     (string, fopen resource, ``Iterator``, ``GuzzleHttp\Stream\StreamInterface``)
@@ -202,10 +202,10 @@ status
 
 headers
     (Required, array)
-    Associative array of headers. Each key represents the header name. Values
-    can be strings or arrays. When an array is provided, it means the header
-    is sent using multiple lines. The headers array MAY be empty in the event
-    an error occured before a response was received.
+    Associative array of headers. Each key represents the header name. Each
+    value contains an array of strings where each entry of the array is a
+    header line. The headers array MAY be empty in the event an error occured
+    before a response was received.
 
 body
     (string, fopen resource, ``Iterator``, ``GuzzleHttp\Stream\StreamInterface``)
@@ -224,4 +224,4 @@ error
 
 transfer_stats
     (array)
-    Provides an associative array of transfer statistics.
+    Provides an associative array of arbitrary transfer statistics if provided by

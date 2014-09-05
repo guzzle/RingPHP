@@ -14,20 +14,20 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'GET',
             'uri'         => '/',
-            'headers'     => ['host' => Server::$host, 'Foo' => 'Bar']
+            'headers'     => ['host' => [Server::$host], 'Foo' => ['Bar']]
         ]);
 
         $this->assertEquals(200, $response['status']);
         $this->assertEquals('OK', $response['reason']);
-        $this->assertEquals('Bar', $response['headers']['Foo']);
-        $this->assertEquals('8', $response['headers']['Content-Length']);
+        $this->assertEquals(['Bar'], $response['headers']['Foo']);
+        $this->assertEquals(['8'], $response['headers']['Content-Length']);
         $this->assertEquals('hi there', Core::body($response));
 
         $sent = Server::received()[0];
         $this->assertEquals('GET', $sent['http_method']);
         $this->assertEquals('/', $sent['resource']);
-        $this->assertEquals('127.0.0.1:8125', $sent['headers']['host']);
-        $this->assertEquals('Bar', $sent['headers']['foo']);
+        $this->assertEquals(['127.0.0.1:8125'], $sent['headers']['host']);
+        $this->assertEquals(['Bar'], $sent['headers']['foo']);
     }
 
     public function testAddsErrorToResponse()
@@ -35,7 +35,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $adapter = new StreamAdapter();
         $result = $adapter([
             'http_method' => 'GET',
-            'headers'     => ['host' => 'localhost:123'],
+            'headers'     => ['host' => ['localhost:123']],
             'client'      => ['timeout' => 0.01]
         ]);
 
@@ -70,7 +70,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method'  => 'PUT',
             'uri'          => '/foo',
             'query_string' => 'baz=bar',
-            'headers'      => ['host' => Server::$host, 'Foo' => 'Bar'],
+            'headers'      => ['host' => [Server::$host], 'Foo' => ['Bar']],
             'body'         => 'test',
             'client'       => ['stream' => true]
         ]);
@@ -99,7 +99,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'GET',
             'uri'         => '/',
-            'headers'     => ['host' => Server::$host]
+            'headers'     => ['host' => [Server::$host]]
         ]);
         $body = $response['body'];
         $this->assertEquals('php://temp', stream_get_meta_data($body)['uri']);
@@ -115,7 +115,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'GET',
             'uri' => '/',
-            'headers' => ['host' => Server::$host],
+            'headers' => ['host' => [Server::$host]],
             'client' => ['save_to' => $r]
         ]);
         $body = $response['body'];
@@ -133,7 +133,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'GET',
             'uri' => '/',
-            'headers' => ['host' => Server::$host],
+            'headers' => ['host' => [Server::$host]],
             'client' => ['save_to' => $tmpfname]
         ]);
         $body = $response['body'];
@@ -153,8 +153,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
                 'status' => 200,
                 'reason' => 'OK',
                 'headers' => [
-                    'Content-Encoding' => 'gzip',
-                    'Content-Length' => strlen($content)
+                    'Content-Encoding' => ['gzip'],
+                    'Content-Length' => [strlen($content)]
                 ],
                 'body' => $content
             ]
@@ -163,7 +163,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $adapter = new StreamAdapter();
         $response = $adapter([
             'http_method' => 'GET',
-            'headers'     => ['host' => Server::$host],
+            'headers'     => ['host' => [Server::$host]],
             'uri'         => '/',
             'client'      => ['decode_content' => true]
         ]);
@@ -179,8 +179,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
                 'status' => 200,
                 'reason' => 'OK',
                 'headers' => [
-                    'Content-Encoding' => 'gzip',
-                    'Content-Length'   => strlen($content)
+                    'Content-Encoding' => ['gzip'],
+                    'Content-Length'   => [strlen($content)]
                 ],
                 'body' => $content
             ]
@@ -189,7 +189,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $adapter = new StreamAdapter();
         $response = $adapter([
             'http_method' => 'GET',
-            'headers'     => ['host' => Server::$host],
+            'headers'     => ['host' => [Server::$host]],
             'uri'         => '/',
             'client'      => ['stream' => true, 'decode_content' => false]
         ]);
@@ -204,7 +204,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         return $adapter([
             'http_method' => 'GET',
             'uri'         => '/',
-            'headers'     => ['host' => Server::$host],
+            'headers'     => ['host' => [Server::$host]],
             'client'      => $opts
         ]);
     }
@@ -358,7 +358,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $adapter([
             'http_method' => 'PUT',
             'uri' => '/',
-            'headers' => ['host' => Server::$host, 'content-length' => 3],
+            'headers' => ['host' => [Server::$host], 'content-length' => [3]],
             'body' => 'foo'
         ]);
         $req = Server::received()[0];
@@ -374,8 +374,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
                 'status' => 200,
                 'reason' => 'OK',
                 'headers' => [
-                    'Foo' => 'Bar',
-                    'Content-Length' => 8
+                    'Foo' => ['Bar'],
+                    'Content-Length' => [8]
                 ],
                 'body' => 'hi there'
             ]

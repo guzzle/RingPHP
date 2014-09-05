@@ -61,17 +61,7 @@ class Server
                 $response['body'] = base64_encode($response['body']);
             }
 
-            $response += [
-                'headers' => [],
-                'reason'  => '',
-                'body'    => ''
-            ];
-
-            // Convert header arrays to strings
-            $response['headers'] = array_map(function ($h) {
-                return is_array($h) ? implode(' ,', $h) : $h;
-            }, $response['headers']);
-
+            $response += ['headers' => [], 'reason' => '', 'body' => ''];
             $data[] = $response;
         }
 
@@ -105,6 +95,12 @@ class Server
             }
             if (!isset($res['resource'])) {
                 $res['resource'] = '';
+            }
+            // Ensure that headers are all arrays
+            if (isset($res['headers'])) {
+                foreach ($res['headers'] as &$header) {
+                    $header = (array) $header;
+                }
             }
         }
 
@@ -174,7 +170,7 @@ class Server
             'http_method'  => $method,
             'uri'          => $path,
             'request_port' => 8125,
-            'headers'      => ['host' => '127.0.0.1:8125'],
+            'headers'      => ['host' => ['127.0.0.1:8125']],
             'body'         => $body,
             'client'       => $client
         ];

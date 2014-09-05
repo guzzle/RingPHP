@@ -58,38 +58,79 @@ class Core
     }
 
     /**
-     * Gets a header from a message that contains a "headers" key.
+     * Gets an array of header line values for a specific header from a
+     * message that contains a "headers" key.
      *
      * This method searches for a header using a case-insensitive search.
      *
-     * @param array  $message  Request or response hash.
-     * @param string $header   Header to check
-     * @param bool   $asString Set to true to ensure that multi-valued headers
-     *                         are returned as a string.
+     * @param array  $message Request or response hash.
+     * @param string $header  Header to check
      *
-     * @return string|array|null
+     * @return array
      */
-    public static function header(array $message, $header, $asString = false)
+    public static function headerLines(array $message, $header)
     {
-        $match = null;
-
         // Slight optimization for exact matches.
         if (isset($message['headers'][$header])) {
-            $match = $message['headers'][$header];
-        } elseif (!isset($message['headers'])) {
-            return null;
-        } else {
-            foreach ($message['headers'] as $name => $value) {
-                if (!strcasecmp($name, $header)) {
-                    $match = $value;
-                    break;
-                }
+            return $message['headers'][$header];
+        }
+
+        // Check for message with no headers after the "fast" isset check.
+        if (!isset($message['headers'])) {
+            return [];
+        }
+
+        // Iterate and case-insensitively find the header by name.
+        foreach ($message['headers'] as $name => $value) {
+            if (!strcasecmp($name, $header)) {
+                return $value;
             }
         }
 
-        return $match !== null && $asString && is_array($match)
-            ? implode(', ', $match)
-            : $match;
+        return [];
+    }
+
+    /**
+     * Gets a case-insensitive header as a string from a message that contains
+     * a "headers" key.
+     *
+     * @param array  $message Request or response hash.
+     * @param string $header  Header to check
+     *
+     * @return string|null Returns all matching header lines as a string.
+     */
+    public static function header(array $message, $header)
+    {
+        $match = self::headerLines($message, $header);
+        return $match ? implode(', ', $match) : null;
+    }
+
+    /**
+     * Returns the first header value from a message using case-insensitive
+     * search.
+     *
+     * @param array  $message Request or response hash.
+     * @param string $header  Header to check
+     *
+     * @return array
+     */
+    public static function firstHeader(array $message, $header)
+    {
+        $match = self::headerLines($message, $header);
+        return isset($match[0]) ? $match[0] : null;
+    }
+
+    /**
+     * Returns true if a message has the provided case-insensitive header.
+     *
+     * @param array  $message Request or response hash.
+     * @param string $header  Header to check
+     *
+     * @return bool
+     */
+    public static function hasHeader(array $message, $header)
+    {
+        return (bool) self::headerLines($message, $header);
     }
 
     /**
@@ -173,15 +214,9 @@ class Core
 
         foreach ($lines as $line) {
             $parts = explode(':', $line, 2);
-            $key = trim($parts[0]);
-            $value = isset($parts[1]) ? trim($parts[1]) : null;
-            if (!isset($headers[$key])) {
-                $headers[$key] = $value;
-            } elseif (is_array($headers[$key])) {
-                $headers[$key][] = $value;
-            } else {
-                $headers[$key] = [$headers[$key], $value];
-            }
+            $headers[trim($parts[0])][] = isset($parts[1])
+                ? trim($parts[1])
+                : null;
         }
 
         return $headers;

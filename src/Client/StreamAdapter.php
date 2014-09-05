@@ -46,7 +46,7 @@ class StreamAdapter
     {
         // Automatically decode responses when instructed.
         if (!empty($request['client']['decode_content'])) {
-            switch (Core::header($response, 'Content-Encoding', true)) {
+            switch (Core::firstHeader($response, 'Content-Encoding', true)) {
                 case 'gzip':
                 case 'deflate':
                     $stream = new InflateStream(Stream::factory($stream));
@@ -169,9 +169,9 @@ class StreamAdapter
         // HTTP/1.1 streams using the PHP stream wrapper require a
         // Connection: close header
         if ((!isset($request['version']) || $request['version'] == '1.1')
-            && !Core::header($request, 'Connection')
+            && !Core::hasHeader($request, 'Connection')
         ) {
-            $request['headers']['Connection'] = 'close';
+            $request['headers']['Connection'] = ['close'];
         }
 
         $params = [];
@@ -218,7 +218,7 @@ class StreamAdapter
         if (isset($body)) {
             $context['http']['content'] = $body;
             // Prevent the HTTP adapter from adding a Content-Type header.
-            if (!Core::header($request, 'Content-Type')) {
+            if (!Core::hasHeader($request, 'Content-Type')) {
                 $context['http']['header'][] .= "Content-Type:";
             }
         }

@@ -173,7 +173,7 @@ class CurlFactory
 
     private function applyBody(array $request, array &$options)
     {
-        $contentLength = Core::header($request, 'Content-Length');
+        $contentLength = Core::firstHeader($request, 'Content-Length');
         $size = $contentLength !== null ? (int) $contentLength : null;
 
         // Send the body as a string if the size is less than 1MB OR if the
@@ -197,12 +197,12 @@ class CurlFactory
         }
 
         // If the Expect header is not present, prevent curl from adding it
-        if (!Core::header($request, 'Expect')) {
+        if (!Core::hasHeader($request, 'Expect')) {
             $options[CURLOPT_HTTPHEADER][] = 'Expect:';
         }
 
         // cURL sometimes adds a content-type by default. Prevent this.
-        if (!Core::header($request, 'Content-Type')) {
+        if (!Core::hasHeader($request, 'Content-Type')) {
             $options[CURLOPT_HTTPHEADER][] = 'Content-Type:';
         }
     }
@@ -252,7 +252,7 @@ class CurlFactory
         }
 
         // Remove the Accept header if one was not set
-        if (!Core::header($request, 'Accept')) {
+        if (!Core::hasHeader($request, 'Accept')) {
             $options[CURLOPT_HTTPHEADER][] = 'Accept:';
         }
     }
@@ -369,7 +369,7 @@ class CurlFactory
 
     private function add_decode_content(array $request, &$options, $value)
     {
-        $accept = Core::header($request, 'Accept-Encoding');
+        $accept = Core::firstHeader($request, 'Accept-Encoding');
 
         if ($accept) {
             $options[CURLOPT_ENCODING] = $accept;

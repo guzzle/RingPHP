@@ -19,7 +19,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $this->assertInternalType('array', Core::deref($future));
     }
 
-    public function testReturnsEmptyArrayWhenNoHeadersAreSet()
+    public function testReturnsNullNoHeadersAreSet()
     {
         $this->assertNull(Core::header([], 'Foo'));
     }
@@ -28,15 +28,15 @@ class CoreTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals(
             'hello',
-            Core::header(['headers' => ['foo' => 'hello']], 'FoO')
+            Core::header(['headers' => ['foo' => ['hello']]], 'FoO')
         );
     }
 
-    public function testExtractsHeader()
+    public function testExtractsHeaderLines()
     {
         $this->assertEquals(
             ['bar', 'baz'],
-            Core::header([
+            Core::headerLines([
                 'headers' => [
                     'Foo' => ['bar', 'baz']
                 ]
@@ -65,7 +65,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
     {
         $req = [
             'scheme'  => 'http',
-            'headers' => ['host' => 'foo.com'],
+            'headers' => ['host' => ['foo.com']],
             'uri'     => '/'
         ];
 
@@ -76,7 +76,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
     {
         $req = [
             'scheme'       => 'http',
-            'headers'      => ['host' => 'foo.com'],
+            'headers'      => ['host' => ['foo.com']],
             'uri'          => '/',
             'query_string' => 'foo=baz'
         ];
@@ -141,8 +141,8 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $lines = ['Foo: bar', 'Foo: baz', 'Abc: 123', 'Def: a, b'];
         $this->assertEquals([
             'Foo' => ['bar', 'baz'],
-            'Abc' => '123',
-            'Def' => 'a, b'
+            'Abc' => ['123'],
+            'Def' => ['a, b']
         ], Core::headersFromLines($lines));
     }
 
