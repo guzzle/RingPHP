@@ -4,10 +4,15 @@ namespace GuzzleHttp\Ring;
 /**
  * Represents a future response that can be used just like a normal response.
  *
- * When the response hash is used, the future of the response is dereferenced
- * and used as the internal response data.
+ * Future acts just like a normal response hash. It can be iterated, counted,
+ * and you can access it using associative array style access. When the future
+ * response is used like a normal response hash, the future of the response is
+ * "dereferenced" (meaning blocks until the request has completed), and the
+ * actual response is then used as the internal response data.
  *
- * @property array $data
+ * @property array $data Actual data used by the future. Accessing this
+ *                       property will cause the future to block if it has not
+ *                       already dereferenced the future.
  */
 class Future implements \ArrayAccess, \Countable, \IteratorAggregate
 {

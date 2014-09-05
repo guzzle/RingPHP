@@ -42,11 +42,12 @@ class Core
     }
 
     /**
-     * Derefs a response and returns future responses as an array.
+     * Derefs a response (blocks until it is complete) and returns an array
+     * response.
      *
      * If the provided response is a normal response hash, it is returned.
      *
-     * @param array|callable $response Response to dereference
+     * @param array|Future $response Response to dereference
      *
      * @return array
      */
@@ -56,13 +57,13 @@ class Core
     }
 
     /**
-     * Gets an array of header line values for a specific header from a
-     * message that contains a "headers" key.
+     * Gets an array of header line values from a message for a specific header
      *
-     * This method searches for a header using a case-insensitive search.
+     * This method searches through the "headers" key of a message for a header
+     * using a case-insensitive search.
      *
      * @param array  $message Request or response hash.
-     * @param string $header  Header to check
+     * @param string $header  Header to retrieve
      *
      * @return array
      */
@@ -89,13 +90,16 @@ class Core
     }
 
     /**
-     * Gets a case-insensitive header as a string from a message that contains
-     * a "headers" key.
+     * Gets a header value from a message as a string or null
+     *
+     * This method searches through the "headers" key of a message for a header
+     * using a case-insensitive search. The lines of the header are imploded
+     * using commas into a single string return value.
      *
      * @param array  $message Request or response hash.
-     * @param string $header  Header to check
+     * @param string $header  Header to retrieve
      *
-     * @return string|null Returns all matching header lines as a string.
+     * @return string|null Returns the header string if found, or null if not.
      */
     public static function header(array $message, $header)
     {
@@ -104,13 +108,12 @@ class Core
     }
 
     /**
-     * Returns the first header value from a message using case-insensitive
-     * search.
+     * Returns the first header value from a message as a string or null.
      *
      * @param array  $message Request or response hash.
-     * @param string $header  Header to check
+     * @param string $header  Header to retrieve
      *
-     * @return array
+     * @return string|null Returns the value as a string if found.
      */
     public static function firstHeader(array $message, $header)
     {
@@ -134,8 +137,8 @@ class Core
     /**
      * Parses an array of header lines into an associative array of headers.
      *
-     * @param array $lines Header lines
-     *
+     * @param array $lines Header lines array of strings in the following
+     *                     format: "Name: Value"
      * @return array
      */
     public static function headersFromLines(array $lines)
@@ -153,13 +156,15 @@ class Core
     }
 
     /**
-     * Creates a URL from a request.
+     * Creates a URL string from a request.
      *
-     * If the "url" key is present on the request, it is returned.
+     * If the "url" key is present on the request, it is returned, otherwise
+     * the url is built up based on the scheme, host, uri, and query_string
+     * request values.
      *
      * @param array $request Request to get the URL from
      *
-     * @return string Returns a URL string
+     * @return string Returns the request URL as a string.
      */
     public static function url(array $request)
     {
@@ -186,11 +191,11 @@ class Core
     }
 
     /**
-     * Reads the body of a request or response hash into a string.
+     * Reads the body of a message into a string.
      *
      * @param array $message Message that contains a "body" key.
      *
-     * @return null|string Returns the body as a string.
+     * @return null|string Returns the body as a string or null if not set.
      * @throws \InvalidArgumentException if a request body is invalid.
      */
     public static function body(array $message)
