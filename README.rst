@@ -102,6 +102,12 @@ then
     emulated by blocking adapters as well to provide a consistent
     implementation.
 
+future
+    (bool) Specifies whether or not a request SHOULD be a non-blocking Future.
+    By default, responses can be either actual response arrays or
+    ``GuzzleHttp\Ring\Future`` objects which act like associative arrays but
+    are fulfilled asynchronously or when they are accessed.
+
 Response Array
 --------------
 
