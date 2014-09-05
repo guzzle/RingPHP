@@ -9,41 +9,36 @@ use GuzzleHttp\Stream\StreamInterface;
 class Core
 {
     /**
-     * Wraps a response with a future response that invokes the provided
-     * callable when the response completes.
+     * Adds a "then" function to a request that is invoked when the request
+     * completes.
      *
-     * If the response is not a future response, then the callable is
-     * invoked immediately.
+     * If an existing "then" function is present, then a new "then" will be
+     * added to the request. The new "then" function will become an aggregate
+     * of the previous then function that first calls the previous function
+     * followed by the new function.
      *
-     * @param mixed    $response
-     * @param callable $onComplete A callable that is invoked when complete.
+     * The provided function accepts the returned response, and can optionally
+     * return a new response which will override the response associated with
+     * the request.
+     *
+     * @param array    $request Request to update
+     * @param callable $fn      Function to invoke on completion.
      *
      * @return array|Future
      */
-    public static function then($response, callable $onComplete)
+    public static function then(array $request, callable $fn)
     {
-        if ($response instanceof Future) {
-            return self::future(function () use ($response, $onComplete) {
-                $response = Core::deref($response);
-                $onComplete($response);
-                return $response;
-            });
-        } else {
-            $onComplete($response);
-            return $response;
+        if (isset($request['then'])) {
+            $then = $request['then'];
+            $fn = function ($response) use ($request, $fn, $then) {
+                $result = $then($response) ?: $response;
+                return $fn($result) ?: $result;
+            };
         }
-    }
 
-    /**
-     * Creates a future response using a callable as the dereferencing callable.
-     *
-     * @param callable $deref Callable that blocks until the response is complete
-     *
-     * @return Future
-     */
-    public static function future(callable $deref)
-    {
-        return new Future($deref);
+        $request['then'] = $fn;
+
+        return $request;
     }
 
     /**
