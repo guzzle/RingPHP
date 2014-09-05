@@ -69,5 +69,7 @@ class Future implements \ArrayAccess, \Countable, \IteratorAggregate
             $deref = $this->deref;
             return $this->data = $deref();
         }
+
+        throw new \RuntimeException("Class has no $name property");
     }
 }

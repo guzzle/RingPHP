@@ -52,9 +52,7 @@ class Core
      */
     public static function deref($response)
     {
-        return $response instanceof Future
-            ? $response->deref()
-            : $response;
+        return $response instanceof Future ? $response->deref() : $response;
     }
 
     /**
@@ -134,6 +132,27 @@ class Core
     }
 
     /**
+     * Parses an array of header lines into an associative array of headers.
+     *
+     * @param array $lines Header lines
+     *
+     * @return array
+     */
+    public static function headersFromLines(array $lines)
+    {
+        $headers = [];
+
+        foreach ($lines as $line) {
+            $parts = explode(':', $line, 2);
+            $headers[trim($parts[0])][] = isset($parts[1])
+                ? trim($parts[1])
+                : null;
+        }
+
+        return $headers;
+    }
+
+    /**
      * Creates a URL from a request.
      *
      * If the "url" key is present on the request, it is returned.
@@ -199,26 +218,5 @@ class Core
                 throw new \InvalidArgumentException('Invalid request body: '
                     . gettype($message['body']));
         }
-    }
-
-    /**
-     * Parses an array of header lines into an associative array of headers.
-     *
-     * @param array $lines Header lines
-     *
-     * @return array
-     */
-    public static function headersFromLines(array $lines)
-    {
-        $headers = [];
-
-        foreach ($lines as $line) {
-            $parts = explode(':', $line, 2);
-            $headers[trim($parts[0])][] = isset($parts[1])
-                ? trim($parts[1])
-                : null;
-        }
-
-        return $headers;
     }
 }
