@@ -26,20 +26,36 @@ class StreamAdapter
 
         try {
             $stream = $this->createStream($url, $request, $headers);
-            $parts = explode(' ', array_shift($headers), 3);
-            $response = [
-                'status'         => $parts[1],
-                'reason'         => isset($parts[2]) ? $parts[2] : null,
-                'headers'        => Core::headersFromLines($headers),
-                'effective_url'  => $url
-            ];
-            $stream = $this->checkDecode($request, $response, $stream);
-            $stream = $this->checkStreaming($request, $stream);
-            $response['body'] = $stream;
-            return $response;
+            return $this->createResponse($request, $url, $headers, $stream);
         } catch (\Exception $e) {
             return $this->createErrorResponse($url, $request, $e);
         }
+    }
+
+    private function createResponse(
+        array $request,
+        $url,
+        array $headers,
+        $stream
+    ) {
+        $parts = explode(' ', array_shift($headers), 3);
+        $response = [
+            'status'         => $parts[1],
+            'reason'         => isset($parts[2]) ? $parts[2] : null,
+            'headers'        => Core::headersFromLines($headers),
+            'effective_url'  => $url
+        ];
+
+        $stream = $this->checkDecode($request, $response, $stream);
+        $stream = $this->checkStreaming($request, $stream);
+        $response['body'] = $stream;
+
+        if (isset($request['then'])) {
+            $then = $request['then'];
+            $response = $then($response) ?: $response;
+        }
+
+        return $response;
     }
 
     private function checkDecode(array $request, array $response, $stream)
