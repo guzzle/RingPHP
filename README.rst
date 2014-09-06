@@ -344,24 +344,32 @@ of the request.
 
 .. code-block:: php
 
-    use GuzzleHttp\Ring\Future;
     use GuzzleHttp\Ring\Client\CurlMultiAdapter;
 
+    // The CurlMultiAdapter creates future responses by default.
     $adapter = new CurlMultiAdapter();
+
+    // This function is called when each request completes.
+    $afterComplete = function (array $response) {
+        if (isset($response['error'])) {
+            echo "Error: " . $response['error']->getMessage() . "\n";
+        } else {
+            echo "Completed request to: {$response['effective_url']}\n";
+        }
+    };
 
     $request = [
         'http_method'  => 'GET',
         'uri'          => '/',
         'headers'      => ['Host' => ['google.com']],
-        'then'         => function (array $response) {
-            if (isset($response['error'])) {
-                echo "Encountered an error: " . $error->getMessage() . "\n";
-            } else {
-                echo "Completed request to: {$response['effective_url']}\n";
-            }
-        }
+        'then'         => $afterComplete
     ];
 
-    for ($i = 0; $i < 10; $i++) {
+    // Queue up a bunch of futures the be sent in parallel.
+    for ($i = 0; $i < 5; $i++) {
         $adapter($request);
     }
+
+    // Send a failing request
+    $request['headers']['Host'] = ['doesnotexist.co.uk'];
+    $adapter($request);
