@@ -277,6 +277,7 @@ They accept a request hash and return a response hash.
 
     $response = $adapter($request);
 
+    // Exceptions are added to the error key
     if (isset($response['error'])) {
         throw $response['error'];
     }
@@ -300,7 +301,7 @@ Future Responses
 Clients may return future responses if they wish. Future responses are just
 like response arrays except that they are actually ``GuzzleHttp\Ring\Future``
 objects that are not sent over the wire until they are used or the underlying
-adapter needs to send outstanding requests (for example, if they number of
+adapter needs to send outstanding requests (for example, if the number of
 queued requests becomes too high or the adapter is shutting down).
 
 .. code-block:: php
@@ -335,11 +336,11 @@ destructed will be completed when the adapter is shutting down.
 
 Causing a future to "dereference" or block until it completes will also cause
 the other futures that have been queued on an adapter to block until they
-complete. If you need something to happen the instant a future completed, then
-you need to use the ``then`` array key of a request. The ``then`` key must be
+complete. If you need something to happen the instant a future completes, then
+you must use the ``then`` array key of a request. The ``then`` key must be
 given a PHP callable that accepts a response array. If the callable returns
-a response array, then the returned response will be what is used as the
-responses of the request.
+a response array, then the returned response will be uses as the new response
+of the request.
 
 .. code-block:: php
 
@@ -353,7 +354,11 @@ responses of the request.
         'uri'          => '/',
         'headers'      => ['Host' => ['google.com']],
         'then'         => function (array $response) {
-            echo "Completed request to: {$response['effective_url']}\n";
+            if (isset($response['error'])) {
+                echo "Encountered an error: " . $error->getMessage() . "\n";
+            } else {
+                echo "Completed request to: {$response['effective_url']}\n";
+            }
         }
     ];
 
