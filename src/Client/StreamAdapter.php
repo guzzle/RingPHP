@@ -190,6 +190,11 @@ class StreamAdapter
             $request['headers']['Connection'] = ['close'];
         }
 
+        // Ensure SSL is verified by default
+        if (!isset($request['client']['verify'])) {
+            $request['client']['verify'] = true;
+        }
+
         $params = [];
         $options = $this->getDefaultOptions($request);
 
