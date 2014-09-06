@@ -195,6 +195,7 @@ class Core
      * @param array $request Request to get the URL from
      *
      * @return string Returns the request URL as a string.
+     * @throws \InvalidArgumentException if no Host header is present.
      */
     public static function url(array $request)
     {
@@ -207,6 +208,8 @@ class Core
 
         if ($host = self::header($request, 'host')) {
             $uri .= $host;
+        } else {
+            throw new \InvalidArgumentException('No Host header was provided');
         }
 
         if (isset($request['uri'])) {

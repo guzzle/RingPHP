@@ -124,6 +124,15 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('http://foo.com/', Core::url($req));
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage No Host header was provided
+     */
+    public function testEnsuresHostIsAvailableWhenCreatingUrls()
+    {
+        Core::url([]);
+    }
+
     public function testCreatesUrlWithQueryString()
     {
         $req = [
