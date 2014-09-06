@@ -35,9 +35,19 @@ Handlers are run via Ring adapters, which are in turn responsible for
 implementing the HTTP protocol and abstracting the handlers that they run from
 the details of the protocol.
 
-Adapters are implemented as functions with two arguments: a handler and an
-associative array of options. The options map provides any needed configuration
-to the adapter, such as the port on which to run.
+Client Adapters
+~~~~~~~~~~~~~~~
+
+Client adapters are implemented exactly like Handlers, except that they
+actually create and return HTTP responses after sending a request over the
+wire.
+
+Server Adapters
+~~~~~~~~~~~~~~~
+
+Server adapters are implemented as functions with two arguments: a handler and
+an associative array of options. The options map provides any needed
+configuration to the adapter, such as the port on which to run.
 
 Once initialized, adapters receive HTTP requests, parse them to construct a
 request array, and then invoke their handler with this request array as an
@@ -241,3 +251,112 @@ stream_context
     `stream context options <http://www.php.net/manual/en/context.php>`_.
     The stream_context array is an associative array where each key is a PHP
     transport, and each value is an associative array of transport options.
+
+Client Usage
+------------
+
+Because client adapters are just callables, they are used like PHP functions.
+They accept a request hash and return a response hash.
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Client\CurlAdapter;
+
+    $adapter = new CurlAdapter();
+
+    // requests are arrays
+    $request = [
+        'http_method'  => 'GET',
+        'uri'          => '/',
+        'query_string' => 'foo=bar',
+        'headers'      => [
+            'Host'  => ['google.com'],     // headers are arrays
+            'X-Foo' => ['Bar, Baz', 'Bam']
+        ]
+    ];
+
+    $response = $adapter($request);
+
+    if (isset($response['error'])) {
+        throw $response['error'];
+    }
+
+    // Responses are arrays
+    echo $response['status']; // 200
+    echo $response['headers']['Set-Cookie'][0]; // Cookie stuff
+
+If an error is encountered while sending a request, the ``error`` key will be
+populated with a ``GuzzleHttp\Ring\HandlerException`` exception. Well behaved
+adapters do not ever throw exceptions unless absolutely necessary. Instead,
+they should add an exception to the ``error`` key.
+
+Notice that all ``headers`` values are arrays. Each entry in the array is a
+string that should be sent over the wire on its own line (if the underlying
+adapter allows).
+
+Future Responses
+~~~~~~~~~~~~~~~~
+
+Clients may return future responses if they wish. Future responses are just
+like response arrays except that they are actually ``GuzzleHttp\Ring\Future``
+objects that are not sent over the wire until they are used or the underlying
+adapter needs to send outstanding requests (for example, if they number of
+queued requests becomes too high or the adapter is shutting down).
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Future;
+    use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+
+    $adapter = new CurlMultiAdapter();
+
+    $request = [
+        'http_method'  => 'GET',
+        'uri'          => '/',
+        'headers'      => ['Host' => ['google.com']]
+    ];
+
+    $responses = [];
+    for ($i = 0; $i < 10; $i++) {
+        $responses[] = $adapter($request);
+    }
+
+    // They're all Future objects that have not yet been sent.
+    assert($responses[0] instanceof Future);
+
+    // We can prevent a future from being sent by cancelling it.
+    $responses[1]->cancel();
+
+    // Accessing a future will cause it to block until it's complete.
+    echo $responses[0]['status']; // 200
+
+Note: Futures that are not completed by the time the underlying adapter is
+destructed will be completed when the adapter is shutting down.
+
+Causing a future to "dereference" or block until it completes will also cause
+the other futures that have been queued on an adapter to block until they
+complete. If you need something to happen the instant a future completed, then
+you need to use the ``then`` array key of a request. The ``then`` key must be
+given a PHP callable that accepts a response array. If the callable returns
+a response array, then the returned response will be what is used as the
+responses of the request.
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Future;
+    use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+
+    $adapter = new CurlMultiAdapter();
+
+    $request = [
+        'http_method'  => 'GET',
+        'uri'          => '/',
+        'headers'      => ['Host' => ['google.com']],
+        'then'         => function (array $response) {
+            echo "Completed request to: {$response['effective_url']}\n";
+        }
+    ];
+
+    for ($i = 0; $i < 10; $i++) {
+        $adapter($request);
+    }
