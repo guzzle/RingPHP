@@ -176,7 +176,7 @@ class Server
         ];
 
         if ($body) {
-            $request['headers']['content-length'] = strlen($body);
+            $request['headers']['content-length'] = [strlen($body)];
         }
 
         return call_user_func(self::$client, $request);

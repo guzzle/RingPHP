@@ -59,6 +59,21 @@ class CoreTest extends \PHPUnit_Framework_TestCase
     public function testReturnsNullNoHeadersAreSet()
     {
         $this->assertNull(Core::header([], 'Foo'));
+        $this->assertNull(Core::firstHeader([], 'Foo'));
+    }
+
+    public function testReturnsFirstHeaderWhenSimple()
+    {
+        $this->assertEquals('Bar', Core::firstHeader([
+            'headers' => ['Foo' => ['Bar', 'Baz']]
+        ], 'Foo'));
+    }
+
+    public function testReturnsFirstHeaderWhenMultiplePerLine()
+    {
+        $this->assertEquals('Bar', Core::firstHeader([
+            'headers' => ['Foo' => ['Bar, Baz']]
+        ], 'Foo'));
     }
 
     public function testExtractsCaseInsensitiveHeader()
@@ -189,6 +204,21 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals([
             'Foo' => ['bar', 'baz', '123'],
         ], Core::headersFromLines($lines));
+    }
+
+    public function testCreatesArrayCallFunctions()
+    {
+        $called = [];
+        $a = function ($a, $b) use (&$called) {
+            $called['a'] = func_get_args();
+        };
+        $b = function ($a, $b) use (&$called) {
+            $called['b'] = func_get_args();
+        };
+        $c = Core::callArray([$a, $b]);
+        $c(1, 2);
+        $this->assertEquals([1, 2], $called['a']);
+        $this->assertEquals([1, 2], $called['b']);
     }
 }
 

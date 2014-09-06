@@ -42,6 +42,24 @@ class Core
     }
 
     /**
+     * Returns a function that calls all of the provided functions, in order,
+     * passing the arguments provided to the composed function to each function.
+     *
+     * @param callable[] $functions Array of functions to proxy to.
+     *
+     * @return callable
+     */
+    public static function callArray(array $functions)
+    {
+        return function () use ($functions) {
+            $args = func_get_args();
+            foreach ($functions as $fn) {
+                call_user_func_array($fn, $args);
+            }
+        };
+    }
+
+    /**
      * Derefs a response (blocks until it is complete) and returns an array
      * response.
      *
@@ -108,7 +126,9 @@ class Core
     }
 
     /**
-     * Returns the first header value from a message as a string or null.
+     * Returns the first header value from a message as a string or null. If
+     * a header line contains multiple values separated by a comma, then this
+     * function will return the first value in the list.
      *
      * @param array  $message Request or response hash.
      * @param string $header  Header to retrieve
@@ -118,7 +138,17 @@ class Core
     public static function firstHeader(array $message, $header)
     {
         $match = self::headerLines($message, $header);
-        return isset($match[0]) ? $match[0] : null;
+
+        if (!isset($match[0])) {
+            return null;
+        }
+
+        // Return the match itself if it is a single value.
+        if (!($pos = strpos($match[0], ','))) {
+            return $match[0];
+        }
+
+        return substr($match[0], 0, $pos);
     }
 
     /**

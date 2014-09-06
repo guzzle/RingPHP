@@ -14,7 +14,10 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'GET',
             'uri'         => '/',
-            'headers'     => ['host' => [Server::$host], 'Foo' => ['Bar']]
+            'headers'     => [
+                'host' => [Server::$host],
+                'Foo' => ['Bar']
+            ]
         ]);
 
         $this->assertEquals(200, $response['status']);
@@ -70,7 +73,10 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method'  => 'PUT',
             'uri'          => '/foo',
             'query_string' => 'baz=bar',
-            'headers'      => ['host' => [Server::$host], 'Foo' => ['Bar']],
+            'headers'      => [
+                'host' => [Server::$host],
+                'Foo'  => ['Bar']
+            ],
             'body'         => 'test',
             'client'       => ['stream' => true]
         ]);
@@ -300,14 +306,52 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testDebugAttributeWritesStreamInfoToBuffer()
     {
+        $called = false;
         $this->queueRes();
         $buffer = fopen('php://temp', 'r+');
-        $this->getSendResult(['debug' => $buffer]);
+        $this->getSendResult([
+            'progress' => function () use (&$called) { $called = true; },
+            'debug' => $buffer,
+        ]);
         fseek($buffer, 0);
         $contents = stream_get_contents($buffer);
         $this->assertContains('<GET http://127.0.0.1:8125/> [CONNECT]', $contents);
         $this->assertContains('<GET http://127.0.0.1:8125/> [FILE_SIZE_IS] message: "Content-Length: 8"', $contents);
         $this->assertContains('<GET http://127.0.0.1:8125/> [PROGRESS] bytes_max: "8"', $contents);
+        $this->assertTrue($called);
+    }
+
+    public function testEmitsProgressInformation()
+    {
+        $called = [];
+        $this->queueRes();
+        $this->getSendResult([
+            'progress' => function () use (&$called) {
+                $called[] = func_get_args();
+            }
+        ]);
+        $this->assertNotEmpty($called);
+        $this->assertEquals(8, $called[0][0]);
+        $this->assertEquals(0, $called[0][1]);
+    }
+
+    public function testEmitsProgressInformationAndDebugInformation()
+    {
+        $called = [];
+        $this->queueRes();
+        $buffer = fopen('php://memory', 'w+');
+        $this->getSendResult([
+            'debug'    => $buffer,
+            'progress' => function () use (&$called) {
+                $called[] = func_get_args();
+            }
+        ]);
+        $this->assertNotEmpty($called);
+        $this->assertEquals(8, $called[0][0]);
+        $this->assertEquals(0, $called[0][1]);
+        rewind($buffer);
+        $this->assertNotEmpty(stream_get_contents($buffer));
+        fclose($buffer);
     }
 
     public function testAddsProxyByProtocol()
@@ -364,6 +408,22 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $req = Server::received()[0];
         $this->assertSame('', Core::header($req, 'Content-Type'));
         $this->assertEquals(3, Core::header($req, 'Content-Length'));
+    }
+
+    public function testTriggersThenOnComplete()
+    {
+        $this->queueRes();
+        $adapter = new StreamAdapter();
+        $res = $adapter([
+            'http_method' => 'PUT',
+            'uri' => '/',
+            'headers' => ['host' => [Server::$host]],
+            'then' => function (array $response) {
+                $response['foo'] = 'bar';
+                return $response;
+            }
+        ]);
+        $this->assertSame('bar', $res['foo']);
     }
 
     private function queueRes()

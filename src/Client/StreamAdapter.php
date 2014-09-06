@@ -297,6 +297,20 @@ class StreamAdapter
         $options['ssl']['local_cert'] = $value;
     }
 
+    private function add_progress(array $request, &$options, $value, &$params)
+    {
+        $fn = function ($code, $_, $_, $_, $transferred, $total) use ($value) {
+            if ($code == STREAM_NOTIFY_PROGRESS) {
+                $value($total, $transferred, null, null);
+            }
+        };
+
+        // Wrap the existing function if needed.
+        $params['notification'] = isset($params['notification'])
+            ? Core::callArray([$params['notification'], $fn])
+            : $fn;
+    }
+
     private function add_debug(array $request, &$options, $value, &$params)
     {
         static $map = [
@@ -320,7 +334,7 @@ class StreamAdapter
         }
 
         $ident = $request['http_method'] . ' ' . Core::url($request);
-        $params['notification'] = function () use ($ident, $value, $map, $args) {
+        $fn = function () use ($ident, $value, $map, $args) {
             $passed = func_get_args();
             $code = array_shift($passed);
             fprintf($value, '<%s> [%s] ', $ident, $map[$code]);
@@ -329,6 +343,11 @@ class StreamAdapter
             }
             fwrite($value, "\n");
         };
+
+        // Wrap the existing function if needed.
+        $params['notification'] = isset($params['notification'])
+            ? Core::callArray([$params['notification'], $fn])
+            : $fn;
     }
 
     private function applyCustomOptions(array $request, array &$options)
