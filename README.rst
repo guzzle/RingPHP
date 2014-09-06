@@ -387,7 +387,7 @@ composed behavior.
 
 .. code-block:: php
 
-    $addHeader = function (callable $handler, array $headers = []) {
+    $addHeaderHandler = function (callable $handler, array $headers = []) {
         return function (array $request) use ($handler, $headers) {
             // Add our custom headers
             foreach ($headers as $key => $value) {
@@ -398,6 +398,11 @@ composed behavior.
             return $handler($request);
         }
     };
+
+    $response = $addHeaderHandler([
+        'http_method' => 'GET',
+        'headers'     => ['Host' => ['httpbin.org']
+    ]);
 
 This repository comes with a few basic client middlewares that modify requests
 and responses.
@@ -413,12 +418,12 @@ You can force all responses to be synchronous using the synchronous middleware:
     use GuzzleHttp\Ring\Client\Middleware;
 
     $adapter = new CurlMultiAdapter();
-    $synchronous = Middleware::wrapSynchronous($adapter);
+    $synchronousHandler = Middleware::wrapSynchronous($adapter);
 
     // Send a request using an adapter that creates Future responses, but
     // the middleware will convert the future to a synchronous response before
     // returning.
-    $response = $adapter([
+    $response = $synchronousHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com']
     ]);
@@ -441,20 +446,20 @@ middleware.
 
     $defaultAdapter = new CurlAdapter();
     $streamingAdapter = new StreamAdapter();
-    $synchronous = Middleware::wrapStreaming(
+    $streamingHandler = Middleware::wrapStreaming(
         $defaultAdapter,
         $streamingAdapter
     );
 
     // Send the request using the streaming adapter.
-    $response = $adapter([
+    $response = $streamingHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com'],
         'stream'      => true
     ]);
 
     // Send the request using the default adapter.
-    $response = $adapter([
+    $response = $streamingHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com']
     ]);
@@ -476,19 +481,19 @@ to ``true`` on the request hash.
 
     $defaultAdapter = new CurlAdapter();
     $futureAdapter = new CurlMultiAdapter();
-    $synchronous = Middleware::wrapFuture(
+    $futureHandler = Middleware::wrapFuture(
         $defaultAdapter,
         $futureAdapter
     );
 
     // Send the request using the blocking adapter.
-    $response = $adapter([
+    $response = $futureHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com']
     ]);
 
     // Send the request using the future, non-blocking, adapter.
-    $response = $adapter([
+    $response = $futureHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com'],
         'future'      => true
