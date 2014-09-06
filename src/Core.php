@@ -226,12 +226,12 @@ class Core
     /**
      * Reads the body of a message into a string.
      *
-     * @param array $message Message that contains a "body" key.
+     * @param array|Future $message Message that contains a "body" key.
      *
      * @return null|string Returns the body as a string or null if not set.
      * @throws \InvalidArgumentException if a request body is invalid.
      */
-    public static function body(array $message)
+    public static function body($message)
     {
         if (!isset($message['body'])) {
             return null;

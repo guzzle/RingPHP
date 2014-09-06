@@ -28,7 +28,7 @@ class CurlFactory
         $options = $this->getDefaultOptions($request, $headers);
         $this->applyMethod($request, $options);
 
-        if (!isset($request['client'])) {
+        if (isset($request['client'])) {
             $this->applyAdapterOptions($request, $options);
         }
 
@@ -123,6 +123,7 @@ class CurlFactory
 
         return $response + [
             'status'  => null,
+            'reason'  => null,
             'body'    => null,
             'headers' => [],
             'error'   => new HandlerException($message)

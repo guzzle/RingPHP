@@ -37,6 +37,15 @@ class Future implements \ArrayAccess, \Countable, \IteratorAggregate
         return $this->data;
     }
 
+    /**
+     * Cancels the future response from sending a request when dereferenced.
+     */
+    public function cancel()
+    {
+        $this->data = [];
+        $this->deref = null;
+    }
+
     public function offsetExists($offset)
     {
         return isset($this->data[$offset]);

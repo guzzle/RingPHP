@@ -66,11 +66,10 @@ class CurlMultiAdapter
             $future->deref();
         }
 
-        foreach ($this->handles as $handle) {
-            curl_multi_remove_handle($this->mh, $handle[0]);
+        if ($this->mh) {
+            curl_multi_close($this->mh);
+            $this->mh = null;
         }
-
-        curl_multi_close($this->mh);
     }
 
     public function __invoke(array $request)
@@ -99,7 +98,7 @@ class CurlMultiAdapter
         $this->futures[(int) $handle] = $future;
         $this->addRequest($request, $handle);
 
-        if (count($this->futures) > $this->maxHandles) {
+        if (count($this->futures) >= $this->maxHandles) {
             $future->deref();
         }
 

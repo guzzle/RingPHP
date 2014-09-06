@@ -42,4 +42,17 @@ class FutureTest extends \PHPUnit_Framework_TestCase
         $f = new Future(function () {});
         $f->foo;
     }
+
+    public function testCanCancelFuture()
+    {
+        $called = false;
+        $f = new Future(function () use (&$called) {
+            $called = true;
+            return ['status' => 200];
+        });
+        $f->cancel();
+        $f->deref();
+        $this->assertFalse($called);
+        $this->assertArrayNotHasKey('status', $f);
+    }
 }
