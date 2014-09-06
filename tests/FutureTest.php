@@ -33,4 +33,13 @@ class FutureTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse(isset($f['baz']));
         $this->assertEquals(['status' => 200], iterator_to_array($f));
     }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testThrowsWhenAccessingInvalidProperty()
+    {
+        $f = new Future(function () {});
+        $f->foo;
+    }
 }

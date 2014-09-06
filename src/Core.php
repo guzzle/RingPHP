@@ -29,8 +29,8 @@ class Core
     public static function then(array $request, callable $fn)
     {
         if (isset($request['then'])) {
-            $then = $request['then'];
-            $fn = function ($response) use ($request, $fn, $then) {
+            $fn = function ($response) use ($request, $fn) {
+                $then = $request['then'];
                 $result = $then($response) ?: $response;
                 return $fn($result) ?: $result;
             };

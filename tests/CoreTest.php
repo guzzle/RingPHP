@@ -7,6 +7,43 @@ use GuzzleHttp\Stream\Stream;
 
 class CoreTest extends \PHPUnit_Framework_TestCase
 {
+    public function testAddsThensWhenNoneExist()
+    {
+        $th = function () {};
+        $request = [];
+        $request = Core::then($request, $th);
+        $this->assertSame($th, $request['then']);
+    }
+
+    public function testCreatesAggregateThensWithFirstResponse()
+    {
+        $th1 = function (array $response) {
+            $response['a'] = 1;
+            return $response;
+        };
+        $th2 = function (array $response) {};
+        $request = ['then' => $th1];
+        $request = Core::then($request, $th2);
+        $this->assertNotSame($th1, $request['then']);
+        $this->assertNotSame($th2, $request['then']);
+        $this->assertEquals(['a' => 1], call_user_func($request['then'], []));
+    }
+
+    public function testCreatesAggregateThensWithSecondResponse()
+    {
+        $th1 = function (array $response) {};
+        $th2 = function (array $response) {
+            $response['a'] = 1;
+            return $response;
+        };
+        $request = ['then' => $th1];
+        $request = Core::then($request, $th2);
+        $this->assertNotSame($th1, $request['then']);
+        $this->assertNotSame($th2, $request['then']);
+        $this->assertEquals(['a' => 1], call_user_func($request['then'], []));
+    }
+
+
     public function testDerefReturnsArray()
     {
         $res = ['status' => 200];
