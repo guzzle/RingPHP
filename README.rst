@@ -361,7 +361,7 @@ of the request.
     $request = [
         'http_method'  => 'GET',
         'uri'          => '/',
-        'headers'      => ['Host' => ['google.com']],
+        'headers'      => ['Host' => ['www.google.com']],
         'then'         => $afterComplete
     ];
 
@@ -373,3 +373,123 @@ of the request.
     // Send a failing request
     $request['headers']['Host'] = ['doesnotexist.co.uk'];
     $adapter($request);
+
+Using Middleware
+~~~~~~~~~~~~~~~~
+
+Middleware intercepts requests before they are sent over the wire and can be
+used to add functionality to adapters.
+
+Let's say you wanted to modify requests before they are sent over the wire
+so that they always add specific headers. This can be accomplished by creating
+a function that accepts a handler and returns a new function that adds the
+composed behavior.
+
+.. code-block:: php
+
+    $addHeader = function (callable $handler, array $headers = []) {
+        return function (array $request) use ($handler, $headers) {
+            // Add our custom headers
+            foreach ($headers as $key => $value) {
+                $request['headers'][$key] = $value;
+            }
+
+            // Send the request using the handler and return the response.
+            return $handler($request);
+        }
+    };
+
+This repository comes with a few basic client middlewares that modify requests
+and responses.
+
+Synchronous Middleware
+^^^^^^^^^^^^^^^^^^^^^^
+
+You can force all responses to be synchronous using the synchronous middleware:
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+    use GuzzleHttp\Ring\Client\Middleware;
+
+    $adapter = new CurlMultiAdapter();
+    $synchronous = Middleware::wrapSynchronous($adapter);
+
+    // Send a request using an adapter that creates Future responses, but
+    // the middleware will convert the future to a synchronous response before
+    // returning.
+    $response = $adapter([
+        'http_method' => 'GET',
+        'headers'     => ['Host' => ['www.google.com']
+    ]);
+
+    // The response has been dereferenced and is a regular array.
+    assert(is_array($response));
+
+Streaming Middleware
+^^^^^^^^^^^^^^^^^^^^
+
+If you want to send all requests with the ``streaming`` option to a specific
+adapter but other requests to a different adapter, then use the streaming
+middleware.
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Client\CurlAdapter;
+    use GuzzleHttp\Ring\Client\StreamAdapter;
+    use GuzzleHttp\Ring\Client\Middleware;
+
+    $defaultAdapter = new CurlAdapter();
+    $streamingAdapter = new StreamAdapter();
+    $synchronous = Middleware::wrapStreaming(
+        $defaultAdapter,
+        $streamingAdapter
+    );
+
+    // Send the request using the streaming adapter.
+    $response = $adapter([
+        'http_method' => 'GET',
+        'headers'     => ['Host' => ['www.google.com'],
+        'stream'      => true
+    ]);
+
+    // Send the request using the default adapter.
+    $response = $adapter([
+        'http_method' => 'GET',
+        'headers'     => ['Host' => ['www.google.com']
+    ]);
+
+Future Middleware
+^^^^^^^^^^^^^^^^^
+
+If you want to send all requests with the ``future`` option to a specific
+adapter but other requests to a different adapter, then use the future
+middleware. Like the synchronous middleware, this middleware converts future
+responses to synchronous responses if the ``future`` request option was not set
+to ``true`` on the request hash.
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Client\CurlAdapter;
+    use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+    use GuzzleHttp\Ring\Client\Middleware;
+
+    $defaultAdapter = new CurlAdapter();
+    $futureAdapter = new CurlMultiAdapter();
+    $synchronous = Middleware::wrapFuture(
+        $defaultAdapter,
+        $futureAdapter
+    );
+
+    // Send the request using the blocking adapter.
+    $response = $adapter([
+        'http_method' => 'GET',
+        'headers'     => ['Host' => ['www.google.com']
+    ]);
+
+    // Send the request using the future, non-blocking, adapter.
+    $response = $adapter([
+        'http_method' => 'GET',
+        'headers'     => ['Host' => ['www.google.com'],
+        'future'      => true
+    ]);
