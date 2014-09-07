@@ -19,7 +19,7 @@
  *
  *      < HTTP/1.1 200 OK
  *      <
- *      < [{'http_method': 'GET', 'uri': '/', 'headers': {}, 'body': 'base64 string'}]
+ *      < [{'http_method': 'GET', 'uri': '/', 'headers': {}, 'body': 'string'}]
  *
  *  - Shutdown the server
  *      > DELETE /guzzle-server
@@ -108,10 +108,11 @@ var GuzzleServer = function(port, log) {
             res.writeHead(500);
             res.end('No responses in queue');
         } else {
+            console.log('Returning response from queue and adding request');
+            that.requests.push(request);
             var response = that.responses.shift();
             res.writeHead(response.status, response.reason, response.headers);
             res.end(response.body);
-            that.requests.push(request);
         }
     };
 

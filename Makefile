@@ -5,7 +5,7 @@ start-server:
 	|| node tests/Client/server.js &> /dev/null &
 
 stop-server:
-	@PID=$(shell ps axo pid,command | grep 'tests/client/server.js' | grep -v grep | cut -f 1 -d " ") && \
+	@PID=$(shell ps axo pid,command | grep 'tests/Client/server.js' | grep -v grep | cut -f 1 -d " ") && \
 	[ -n "$$PID" ] && \
 	kill $$PID || \
 	true

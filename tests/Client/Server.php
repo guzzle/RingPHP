@@ -81,12 +81,14 @@ class Server
         }
 
         $response = self::send('GET', '/guzzle-server/requests');
-        $result = json_decode(Core::body($response), true);
+        $body = Core::body($response);
+        $result = json_decode($body, true);
+        if ($result === false) {
+            throw new \RuntimeException('Error decoding response: '
+                . json_last_error());
+        }
 
         foreach ($result as &$res) {
-            if (isset($res['body'])) {
-                $res['body'] = base64_decode($res['body']);
-            }
             if (isset($res['uri'])) {
                 $res['resource'] = $res['uri'];
             }

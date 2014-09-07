@@ -222,7 +222,7 @@ class CurlFactory
             };
             if (!isset($options[CURLOPT_INFILESIZE])) {
                 if ($size = $body->getSize()) {
-                    $options[CURLOPT_HTTPHEADER][] = "Content-Length: $size";
+                    $options[CURLOPT_INFILESIZE] = $size;
                 }
             }
         } elseif (is_resource($body)) {
@@ -231,28 +231,23 @@ class CurlFactory
             $buf = '';
             $options[CURLOPT_READFUNCTION] = function ($ch, $fd, $length) use ($body, &$buf) {
                 if ($body->valid()) {
-                    $body->next();
                     $buf .= $body->current();
+                    $body->next();
                 }
                 $result = (string) substr($buf, 0, $length);
                 $buf = substr($buf, $length);
                 return $result;
             };
         } else {
-            throw new \RuntimeException('Invalid request body provided');
+            throw new \InvalidArgumentException('Invalid request body provided');
         }
     }
 
     private function applyHeaders(array $request, array &$options)
     {
         foreach ($options['_headers'] as $name => $values) {
-            if (is_array($values)) {
-                // multi-value headers are added on multiple lines
-                foreach ($values as $value) {
-                    $options[CURLOPT_HTTPHEADER][] = "$name: $value";
-                }
-            } else {
-                $options[CURLOPT_HTTPHEADER][] = "$name: $values";
+            foreach ($values as $value) {
+                $options[CURLOPT_HTTPHEADER][] = "$name: $value";
             }
         }
 
@@ -275,10 +270,6 @@ class CurlFactory
      */
     private function applyCustomCurlOptions(array $config, array $options)
     {
-        if (!$config) {
-            return $options;
-        }
-
         $curlOptions = [];
         foreach ($config as $key => $value) {
             if (is_int($key)) {
@@ -322,7 +313,7 @@ class CurlFactory
                     unset($options[CURLOPT_CAINFO]);
                     $options[CURLOPT_SSL_VERIFYHOST] = 0;
                     $options[CURLOPT_SSL_VERIFYPEER] = false;
-                    break;
+                    continue;
                 }
 
                 $options[CURLOPT_SSL_VERIFYHOST] = 2;
@@ -331,7 +322,7 @@ class CurlFactory
                 if (is_string($value)) {
                     $options[CURLOPT_CAINFO] = $value;
                     if (!file_exists($value)) {
-                        throw new \RuntimeException(
+                        throw new \InvalidArgumentException(
                             "SSL CA bundle not found: $value"
                         );
                     }
@@ -340,8 +331,11 @@ class CurlFactory
 
             case 'decode_content':
 
-                $accept = Core::firstHeader($request, 'Accept-Encoding');
+                if ($value === false) {
+                    continue;
+                }
 
+                $accept = Core::firstHeader($request, 'Accept-Encoding');
                 if ($accept) {
                     $options[CURLOPT_ENCODING] = $accept;
                 } else {
@@ -384,7 +378,7 @@ class CurlFactory
 
                 if (!is_array($value)) {
                     $options[CURLOPT_PROXY] = $value;
-                } else {
+                } elseif (isset($request['scheme'])) {
                     $scheme = $request['scheme'];
                     if (isset($value[$scheme])) {
                         $options[CURLOPT_PROXY] = $value[$scheme];
@@ -394,8 +388,13 @@ class CurlFactory
 
             case 'cert':
 
+                if (is_array($value)) {
+                    $options[CURLOPT_SSLCERTPASSWD] = $value[1];
+                    $value = $value[0];
+                }
+
                 if (!file_exists($value)) {
-                    throw new \RuntimeException(
+                    throw new \InvalidArgumentException(
                         "SSL certificate not found: {$value}"
                     );
                 }
@@ -411,7 +410,7 @@ class CurlFactory
                 }
 
                 if (!file_exists($value)) {
-                    throw new \RuntimeException(
+                    throw new \InvalidArgumentException(
                         "SSL private key not found: {$value}"
                     );
                 }
