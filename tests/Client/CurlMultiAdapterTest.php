@@ -22,7 +22,8 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(200, $response['status']);
         $this->assertSame($res, $response->deref());
         $this->assertArrayHasKey('transfer_stats', $response);
-        $this->assertEquals(Server::$url, $response['transfer_stats']['url']);
+        $realUrl = trim($response['transfer_stats']['url'], '/');
+        $this->assertEquals(trim(Server::$url, '/'), $realUrl);
         $this->assertArrayHasKey('effective_url', $response);
         $this->assertEquals(Server::$url, $response['effective_url']);
     }

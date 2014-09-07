@@ -117,7 +117,9 @@ class CurlFactory
         if (!$message) {
             $message = sprintf('cURL error %s: %s',
                 $response['curl']['errno'],
-                $response['curl']['error']
+                isset($response['curl']['error'])
+                    ? $response['curl']['error']
+                    : 'See http://curl.haxx.se/libcurl/c/libcurl-errors.html'
             );
         }
 
@@ -428,8 +430,13 @@ class CurlFactory
 
                 $options[CURLOPT_NOPROGRESS] = false;
                 $options[CURLOPT_PROGRESSFUNCTION] =
-                    function ($_, $a, $b, $c, $d) use ($value) {
-                        $value($a, $b, $c, $d);
+                    function () use ($value) {
+                        $args = func_get_args();
+                        // PHP 5.5 pushed the handle onto the start of the args
+                        if (is_resource($args[0])) {
+                            array_shift($args);
+                        }
+                        call_user_func_array($value, $args);
                     };
                 break;
 
