@@ -25,7 +25,10 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $realUrl = trim($response['transfer_stats']['url'], '/');
         $this->assertEquals(trim(Server::$url, '/'), $realUrl);
         $this->assertArrayHasKey('effective_url', $response);
-        $this->assertEquals(Server::$url, $response['effective_url']);
+        $this->assertEquals(
+            trim(Server::$url, '/'),
+            trim($response['effective_url'], '/')
+        );
     }
 
     public function testCreatesErrorResponses()
@@ -43,9 +46,15 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('error', $response);
         $this->assertContains('cURL error ', $response['error']->getMessage());
         $this->assertArrayHasKey('transfer_stats', $response);
-        $this->assertEquals($url, $response['transfer_stats']['url']);
+        $this->assertEquals(
+            trim($url, '/'),
+            trim($response['transfer_stats']['url'], '/')
+        );
         $this->assertArrayHasKey('effective_url', $response);
-        $this->assertEquals($url, $response['effective_url']);
+        $this->assertEquals(
+            trim($url, '/'),
+            trim($response['effective_url'], '/')
+        );
     }
 
     public function testSendsFuturesWhenDestructed()
