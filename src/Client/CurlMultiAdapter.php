@@ -21,6 +21,9 @@ class CurlMultiAdapter
     /** @var int */
     private $selectTimeout;
 
+    /** @var bool */
+    private $active;
+
     private $handles = [];
     private $processed = [];
     private $futures = [];
@@ -109,6 +112,13 @@ class CurlMultiAdapter
     {
         $this->handles[(int) $handle] = [$handle, &$request, []];
         curl_multi_add_handle($this->mh, $handle);
+
+        if (empty($request['client']['batch_future'])) {
+            do {
+                $mrc = curl_multi_exec($this->mh, $this->active);
+            } while ($mrc === CURLM_CALL_MULTI_PERFORM);
+            $this->processMessages();
+        }
     }
 
     private function removeProcessed($id)
@@ -123,21 +133,18 @@ class CurlMultiAdapter
     private function execute()
     {
         do {
-            do {
-                $mrc = curl_multi_exec($this->mh, $active);
-            } while ($mrc === CURLM_CALL_MULTI_PERFORM);
-
-            $this->processMessages();
-
-            if ($active &&
+            if ($this->active &&
                 curl_multi_select($this->mh, $this->selectTimeout) === -1
             ) {
                 // Perform a usleep if a select returns -1.
                 // See: https://bugs.php.net/bug.php?id=61141
                 usleep(250);
             }
-
-        } while ($this->handles || $active);
+            do {
+                $mrc = curl_multi_exec($this->mh, $this->active);
+            } while ($mrc === CURLM_CALL_MULTI_PERFORM);
+            $this->processMessages();
+        } while ($this->handles || $this->active);
     }
 
     private function processMessages()
