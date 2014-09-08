@@ -54,14 +54,14 @@ var GuzzleServer = function(port, log) {
                 that.requests = [];
                 res.writeHead(200, 'OK', { 'Content-Length': 0 });
                 res.end();
-                if (this.log) {
+                if (that.log) {
                     console.log('Flushing requests');
                 }
             } else if (req.url == '/guzzle-server') {
                 // Shutdown the server
                 res.writeHead(200, 'OK', { 'Content-Length': 0, 'Connection': 'close' });
                 res.end();
-                if (this.log) {
+                if (that.log) {
                     console.log('Shutting down');
                 }
                 that.server.close();
@@ -108,7 +108,9 @@ var GuzzleServer = function(port, log) {
             res.writeHead(500);
             res.end('No responses in queue');
         } else {
-            console.log('Returning response from queue and adding request');
+            if (that.log) {
+                console.log('Returning response from queue and adding request');
+            }
             that.requests.push(request);
             var response = that.responses.shift();
             res.writeHead(response.status, response.reason, response.headers);
