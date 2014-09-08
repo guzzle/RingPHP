@@ -387,6 +387,10 @@ composed behavior.
 
 .. code-block:: php
 
+    use GuzzleHttp\Ring\Client\CurlAdapter;
+
+    $adapter = new CurlAdapter();
+
     $addHeaderHandler = function (callable $handler, array $headers = []) {
         return function (array $request) use ($handler, $headers) {
             // Add our custom headers
@@ -398,8 +402,10 @@ composed behavior.
             return $handler($request);
         }
     };
+    
+    $adapter = $addHeaderHandler($adapter);
 
-    $response = $addHeaderHandler([
+    $response = $adapter([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['httpbin.org']
     ]);
