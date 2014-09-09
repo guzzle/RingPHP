@@ -2,6 +2,8 @@
 namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\CurlAdapter;
+use GuzzleHttp\Stream\FnStream;
+use GuzzleHttp\Stream\Stream;
 
 class CurlAdapterTest extends \PHPUnit_Framework_TestCase
 {
@@ -110,5 +112,39 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertInternalType('array', $res);
         $this->assertEquals(200, $res['status']);
         $this->assertEquals('OK', $res['reason']);
+    }
+
+    public function testHasNoMemoryLeaks()
+    {
+        Server::flush();
+        $response = ['status' => 200];
+        Server::enqueue(array_fill_keys(range(0, 25), $response));
+        $a = new CurlAdapter();
+        $memory = [];
+        for ($i = 0; $i < 25; $i++) {
+            $request = [
+                'http_method' => 'GET',
+                'headers'     => ['host' => [Server::$host]],
+                'then'        => function () {},
+                'progress'    => function () {},
+                'client'      => [
+                    'save_to' => FnStream::decorate(Stream::factory(), [
+                        'write' => function ($str) use (&$request) {
+                            return strlen($str);
+                        }
+                    ])
+                ]
+            ];
+            $a($request);
+            $memory[] = memory_get_usage(true);
+        }
+        $this->assertCount(25, Server::received());
+        // Take the last 15 entries and ensure they are consistent
+        $last = $memory[9];
+        $entries = array_slice($memory, 10);
+        foreach ($entries as $entry) {
+            $this->assertEquals($last, $entry);
+            $last = $entry;
+        }
     }
 }

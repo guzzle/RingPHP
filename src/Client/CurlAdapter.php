@@ -103,6 +103,14 @@ class CurlAdapter
             curl_close($this->handles[$id]);
             unset($this->handles[$id], $this->ownedHandles[$id]);
         } else {
+            // curl_reset doesn't clear these out for some reason
+            static $unsetValues = [
+                CURLOPT_HEADERFUNCTION   => null,
+                CURLOPT_WRITEFUNCTION    => null,
+                CURLOPT_READFUNCTION     => null,
+                CURLOPT_PROGRESSFUNCTION => null
+            ];
+            curl_setopt_array($handle, $unsetValues);
             curl_reset($handle);
             $this->ownedHandles[$id] = false;
         }

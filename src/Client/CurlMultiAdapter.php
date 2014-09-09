@@ -113,7 +113,12 @@ class CurlMultiAdapter
         $this->handles[(int) $handle] = [$handle, &$request, []];
         curl_multi_add_handle($this->mh, $handle);
 
-        if (empty($request['client']['batch_future'])) {
+        $future = empty($request['client']['future'])
+            ? false
+            : $request['client']['future'];
+
+        // "batch" futures are only sent once the pool has many requests.
+        if ($future !== 'batch') {
             do {
                 $mrc = curl_multi_exec($this->mh, $this->active);
             } while ($mrc === CURLM_CALL_MULTI_PERFORM);

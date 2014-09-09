@@ -113,14 +113,30 @@ then
     implementation.
 
 future
-    (bool) Specifies whether or not a request SHOULD be a non-blocking Future.
-    By default, responses can be either actual response arrays or
-    ``GuzzleHttp\Ring\Future`` objects which act like associative arrays but
+    (bool, string) Specifies whether or not a request SHOULD be a non-blocking
+    future response. By default, responses can be either actual response arrays
+    or ``GuzzleHttp\Ring\Future`` objects which act like associative arrays but
     are fulfilled asynchronously or when they are accessed.
+
+    Set to ``true`` to *request* that a future response be provided (note that
+    you might not necessarily get an actual future response is the adapter does
+    not support it). Omit the ``future`` option or set to it ``false`` to
+    request that a synchronous response be provided.
+
+    You can provide a string value to specify fine-tuned future behaviors that
+    may be specific to the underlying adapters you are using.
+
+    - batch: Set to ``batch`` to request that the adapter does not open and
+      send the request immediately, but rather only open and send the request
+      once a pool of requests is ready to send.
+
+    If an adapter does not implement or understand a provided string value,
+    then the request MUST be treated as if the user provided ``true`` rather
+    than the string value.
 
     Future responses created by asynchronous adapters MUST attempt to complete
     any outstanding future responses when a process completes. Asynchronous
-    adapter MAY choose to automatically complete responses when the number
+    adapters MAY choose to automatically complete responses when the number
     of outstanding requests reaches an adapter-specific threshold.
 
 Response Array
@@ -402,8 +418,12 @@ composed behavior.
             return $handler($request);
         }
     };
-    
-    $adapter = $addHeaderHandler($adapter);
+
+    // Create a new handler that adds headers to each request.
+    $adapter = $addHeaderHandler($adapter, [
+        'X-AddMe'       => 'hello',
+        'Authorization' => 'Basic xyz'
+    ]);
 
     $response = $adapter([
         'http_method' => 'GET',
