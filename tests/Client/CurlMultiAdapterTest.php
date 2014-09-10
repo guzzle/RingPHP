@@ -18,7 +18,6 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             }
         ]);
         $this->assertInstanceOf('GuzzleHttp\Ring\Future', $response);
-        $this->assertNull($res);
         $this->assertEquals(200, $response['status']);
         $this->assertSame($res, $response->deref());
         $this->assertArrayHasKey('transfer_stats', $response);
@@ -87,7 +86,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $request = [
             'http_method' => 'PUT',
             'headers'     => ['host' => [Server::$host]],
-            'futue'       => 'batch' // passing this to control the test
+            'future'      => 'batch' // passing this to control the test
         ];
         $response = ['status' => 200];
         Server::flush();
