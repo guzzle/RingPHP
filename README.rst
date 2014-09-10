@@ -396,6 +396,9 @@ Using Middleware
 Middleware intercepts requests before they are sent over the wire and can be
 used to add functionality to adapters.
 
+Modifying Requests
+^^^^^^^^^^^^^^^^^^
+
 Let's say you wanted to modify requests before they are sent over the wire
 so that they always add specific headers. This can be accomplished by creating
 a function that accepts a handler and returns a new function that adds the
@@ -430,11 +433,61 @@ composed behavior.
         'headers'     => ['Host' => ['httpbin.org']
     ]);
 
-This repository comes with a few basic client middlewares that modify requests
-and responses.
+Modifying Responses
+^^^^^^^^^^^^^^^^^^^
+
+You can change a response as it's returned from a middleware. In order to be
+a good citizen, you should not expect that the responses returned through your
+middleware will be completed synchronously. Instead, you should use the
+``then`` option of a request to change the response that is ultimately returned
+from within a middleware.
+
+Let's say you wanted to add headers to a response as they are returned from
+your middleware, but you want to make sure you aren't causing future
+responses to be dereferenced right away. You can achieve this by modifying the
+incoming request and adding a ``then`` option that is a function that accepts
+the eventually dereferenced response. You then modify the dereferenced response
+and return the updated response to make your modified response the response
+that is ultimately returned to the consumer.
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Client\CurlAdapter;
+
+    $adapter = new CurlAdapter();
+
+    $responseHeaderHandler = function (callable $handler, array $headers) {
+        return function (array $request) use ($handler, $headers) {
+            // Add headers to successful responses when they complete
+            $request = Core::then($request, function (array $response) {
+                foreach ($headers as $key => $value) {
+                    $response['headers'][$key] = $value;
+                }
+                // Be sure to return the modified response so that it is used
+                // as the dereferneced future response value.
+                return $response;
+            });
+
+            // Send the request using the wrapped and return the response.
+            return $handler($request);
+        }
+    };
+
+    // Create a new handler that adds headers to each response.
+    $adapter = $responseHeaderHandler($adapter, ['X-Header' => 'hello!']);
+
+    $response = $adapter([
+        'http_method' => 'GET',
+        'headers'     => ['Host' => ['httpbin.org']
+    ]);
+
+    assert($response['headers']['X-Header'] == 'hello!');
 
 Synchronous Middleware
 ^^^^^^^^^^^^^^^^^^^^^^
+
+This repository comes with a few basic client middlewares that modify requests
+and responses.
 
 You can force all responses to be synchronous using the synchronous middleware:
 
