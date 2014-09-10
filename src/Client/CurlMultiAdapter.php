@@ -84,17 +84,17 @@ class CurlMultiAdapter
         $headers =& $result[1];
         $body = $result[2];
 
-        $ref = null;
+        $atom = null;
         $future = new Future(
-            function () use ($request, &$headers, $body, $handle, &$ref) {
-                if (!$ref) {
-                    $ref = $this->getFutureResult($request, $headers, $body, $handle);
+            function () use ($request, &$headers, $body, $handle, &$atom) {
+                if (!$atom) {
+                    $atom = $this->getFutureResult($request, $headers, $body, $handle);
                     if (isset($request['then'])) {
                         $then = $request['then'];
-                        $ref = $then($ref) ?: $ref;
+                        $atom = $then($atom) ?: $atom;
                     }
                 }
-                return $ref;
+                return $atom;
             }
         );
 

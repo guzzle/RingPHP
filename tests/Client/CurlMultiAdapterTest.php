@@ -85,8 +85,9 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
     public function testSendsFuturesWhenMaxHandlesIsReached()
     {
         $request = [
-            'http_method' => 'GET',
-            'headers'     => ['host' => [Server::$host]]
+            'http_method' => 'PUT',
+            'headers'     => ['host' => [Server::$host]],
+            'futue'       => 'batch' // passing this to control the test
         ];
         $response = ['status' => 200];
         Server::flush();
