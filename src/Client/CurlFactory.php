@@ -163,7 +163,9 @@ class CurlFactory
         $method = $request['http_method'];
         $options[CURLOPT_CUSTOMREQUEST] = $method;
 
-        if ($method == 'HEAD') {
+        if (isset($request['body'])) {
+            $this->applyBody($request, $options);
+        } elseif ($method == 'HEAD') {
             $options[CURLOPT_NOBODY] = true;
             unset(
                 $options[CURLOPT_WRITEFUNCTION],
@@ -171,9 +173,10 @@ class CurlFactory
                 $options[CURLOPT_FILE],
                 $options[CURLOPT_INFILE]
             );
-        } else {
-            if (isset($request['body'])) {
-                $this->applyBody($request, $options);
+        } elseif ($method == 'PUT' || $method == 'POST') {
+            // See http://tools.ietf.org/html/rfc7230#section-3.3.2
+            if (!Core::hasHeader($request, 'Content-Length')) {
+                $options[CURLOPT_HTTPHEADER][] = 'Content-Length: 0';
             }
         }
     }

@@ -537,7 +537,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($data, $sent['body']);
     }
 
-    public function testAddsContentLenghtFromStream()
+    public function testAddsContentLengthFromStream()
     {
         $stream = Stream::factory('foo');
         $this->addDecodeResponse();
@@ -552,6 +552,23 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(3, Core::header($sent, 'Content-Length'));
         $this->assertNull(Core::header($sent, 'Transfer-Encoding'));
         $this->assertEquals('foo', $sent['body']);
+    }
+
+    public function testSendsPostWithNoBodyOrDefaultContentType()
+    {
+        Server::flush();
+        Server::enqueue([['status' => 200]]);
+        $adapter = new CurlMultiAdapter();
+        $response = $adapter([
+            'http_method' => 'POST',
+            'uri'         => '/',
+            'headers'     => ['host' => [Server::$host]]
+        ]);
+        $response->deref();
+        $received = Server::received()[0];
+        $this->assertEquals('POST', $received['http_method']);
+        $this->assertNull(Core::header($received, 'content-type'));
+        $this->assertSame('0', Core::firstHeader($received, 'content-length'));
     }
 }
 
