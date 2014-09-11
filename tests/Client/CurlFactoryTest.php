@@ -2,7 +2,11 @@
 // Override curl_setopt_array() to get the last set curl options
 namespace GuzzleHttp\Ring\Client {
     function curl_setopt_array($handle, array $options) {
-        $_SERVER['_curl'] = $options;
+        if (!empty($_SERVER['curl_test'])) {
+            $_SERVER['_curl'] = $options;
+        } else {
+            unset($_SERVER['_curl']);
+        }
         \curl_setopt_array($handle, $options);
     }
 }
@@ -19,12 +23,13 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
 {
     public static function setUpBeforeClass()
     {
-        unset($_SERVER['last_curl']);
+        $_SERVER['curl_test'] = true;
+        unset($_SERVER['_curl']);
     }
 
     public static function tearDownAfterClass()
     {
-        unset($_SERVER['last_curl']);
+        unset($_SERVER['_curl'], $_SERVER['curl_test']);
     }
 
     public function testCreatesCurlHandle()
