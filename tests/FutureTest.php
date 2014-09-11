@@ -47,12 +47,18 @@ class FutureTest extends \PHPUnit_Framework_TestCase
     {
         $called = false;
         $f = new Future(function () use (&$called) {
-            $called = true;
+            $called[] = 'deref';
             return ['status' => 200];
+        }, function () use (&$called) {
+            $called[] = 'cancel';
+            return true;
         });
-        $f->cancel();
-        $f->deref();
-        $this->assertFalse($called);
+        $this->assertTrue($f->cancel());
+        $this->assertEquals([], $f->deref());
+        $this->assertEquals(['cancel'], $called);
         $this->assertArrayNotHasKey('status', $f);
+        $this->assertTrue($f->cancelled());
+        $this->assertFalse($f->cancel());
+        $this->assertFalse($f->dereferenced());
     }
 }

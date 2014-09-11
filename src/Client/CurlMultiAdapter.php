@@ -86,6 +86,7 @@ class CurlMultiAdapter
 
         $atom = null;
         $future = new Future(
+            // Dereference function
             function () use ($request, &$headers, $body, $handle, &$atom) {
                 if (!$atom) {
                     $atom = $this->getFutureResult($headers, $body, $handle);
@@ -95,6 +96,10 @@ class CurlMultiAdapter
                     }
                 }
                 return $atom;
+            },
+            // Cancel function that removes the handle and does not finish.
+            function () use ($handle) {
+                return $this->cancel($handle);
             }
         );
 
@@ -133,6 +138,29 @@ class CurlMultiAdapter
         }
     }
 
+    /**
+     * Cancels a handle from sending and removes references to it.
+     *
+     * @param resource $handle Handle to cancel and remove
+     *
+     * @return bool True on success, false on failure.
+     */
+    private function cancel($handle)
+    {
+        $id = (int) $handle;
+
+        // Cannot cancel if it has been processed or is no longer there.
+        if (isset($this->processed[$id]) || !isset($this->futures[$id])) {
+            return false;
+        }
+
+        unset($this->handles[$id], $this->futures[$id], $this->processed[$id]);
+        curl_multi_remove_handle($this->mh, $handle);
+        curl_close($handle);
+
+        return true;
+    }
+
     private function execute()
     {
         do {
@@ -154,6 +182,12 @@ class CurlMultiAdapter
     {
         while ($done = curl_multi_info_read($this->mh)) {
             $id = (int) $done['handle'];
+
+            if (!isset($this->handles[$id])) {
+                // Probably was cancelled.
+                continue;
+            }
+
             $trans =& $this->handles[$id];
             $trans[2]['transfer_stats'] = curl_getinfo($done['handle']);
 

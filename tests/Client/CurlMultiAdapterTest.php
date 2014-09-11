@@ -129,4 +129,45 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             $last = $entry;
         }
     }
+
+    public function testCanCancel()
+    {
+        Server::flush();
+        $response = ['status' => 200];
+        Server::enqueue(array_fill_keys(range(0, 10), $response));
+        $a = new CurlMultiAdapter();
+        $responses = [];
+        for ($i = 0; $i < 10; $i++) {
+            $response = $a([
+                'http_method' => 'GET',
+                'headers'     => ['host' => [Server::$host]],
+                'client'      => ['future' => 'batch']
+            ]);
+            $this->assertTrue($response->cancel());
+            $responses[] = $response;
+        }
+
+        $this->assertCount(0, Server::received());
+
+        foreach ($responses as $response) {
+            $this->assertEquals([], $response->data);
+            $this->assertTrue($response->cancelled());
+            $this->assertFalse($response->dereferenced());
+        }
+    }
+
+    public function testCannotCancelFinished()
+    {
+        Server::flush();
+        Server::enqueue([['status' => 200]]);
+        $a = new CurlMultiAdapter();
+        $response = $a([
+            'http_method' => 'GET',
+            'headers'     => ['host' => [Server::$host]]
+        ]);
+        $cancelFn = $this->readAttribute($response, 'cancelfn');
+        $response->deref();
+        $this->assertFalse(call_user_func($cancelFn));
+        $this->assertFalse($response->cancel());
+    }
 }
