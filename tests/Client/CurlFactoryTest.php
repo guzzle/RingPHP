@@ -7,12 +7,13 @@ namespace GuzzleHttp\Ring\Client {
     }
 }
 
-namespace GuzzleHttp\Ring\Client {
+namespace GuzzleHttp\Tests\Ring\Client {
 
-    use GuzzleHttp\Ring\Core;
-    use GuzzleHttp\Stream\FnStream;
-    use GuzzleHttp\Stream\Stream;
-use GuzzleHttp\Tests\Ring\Client\Server;
+use GuzzleHttp\Ring\Client\CurlFactory;
+use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+use GuzzleHttp\Ring\Core;
+use GuzzleHttp\Stream\FnStream;
+use GuzzleHttp\Stream\Stream;
 
 class CurlFactoryTest extends \PHPUnit_Framework_TestCase
 {

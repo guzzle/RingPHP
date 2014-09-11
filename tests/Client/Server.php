@@ -168,7 +168,7 @@ class Server
         array $client = []
     ) {
         if (!self::$client) {
-            self::$client = new CurlMultiAdapter();
+            self::$client = new StreamAdapter();
         }
 
         $request = [
