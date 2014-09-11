@@ -30,7 +30,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('GET', $sent['http_method']);
         $this->assertEquals('/', $sent['resource']);
         $this->assertEquals(['127.0.0.1:8125'], $sent['headers']['host']);
-        $this->assertEquals(['Bar'], $sent['headers']['foo']);
+        $this->assertEquals('Bar', Core::header($sent, 'foo'));
     }
 
     public function testAddsErrorToResponse()
