@@ -151,8 +151,8 @@ class Server
     private static function isListening()
     {
         $response = self::send('GET', '/guzzle-server/perf', null, [
-            'connect_timeout' => 5,
-            'timeout'         => 5
+            'connect_timeout' => 1,
+            'timeout'         => 1
         ]);
 
         return !isset($response['error']);

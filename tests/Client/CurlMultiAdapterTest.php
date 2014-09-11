@@ -141,7 +141,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             $response = $a([
                 'http_method' => 'GET',
                 'headers'     => ['host' => [Server::$host]],
-                'client'      => ['future' => 'batch']
+                'future'      => 'batch'
             ]);
             $this->assertTrue($response->cancel());
             $responses[] = $response;

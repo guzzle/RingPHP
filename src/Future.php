@@ -17,7 +17,7 @@ namespace GuzzleHttp\Ring;
  * request or to close a socket). If no cancel function is provided, then a
  * request cannot be cancelled. If a cancel function is provided, then it
  * should accept the future as an argument and return true if the future was
- * successfully cancelled or false if it could not be cancelled.
+ *cs
  *
  * @property array $data Actual data used by the future. Accessing this
  *                       property will cause the future to block if it has not
@@ -57,6 +57,7 @@ class Future implements \ArrayAccess, \Countable, \IteratorAggregate
      */
     public function deref()
     {
+        // Return the data if available, or call __get() to dereference.
         return $this->data;
     }
 
@@ -73,25 +74,35 @@ class Future implements \ArrayAccess, \Countable, \IteratorAggregate
     /**
      * Cancels the future response from sending a request when dereferenced.
      *
-     * If the future is already done or cancelled, return false. Otherwise,
-     * change the future’s state to cancelled and return the result of
-     * executing the cancel function that was provided to the future.
+     * If the future is already done or cancelled, return false. If the future
+     * has not been dereferenced, then the dereference function will be
+     * disassociated from the future, will not be called, and the future state
+     * will be changed to cancelled. If the future has a cancel function, then
+     * it will be invoked and the invocation result is returned.
      *
      * @return bool
      */
     public function cancel()
     {
-        // The future cannot be cancelled if it has already been cancelled or
-        // dereferenced. We know this by removing those functions when "done".
-        if (!$this->dereffn || !$this->cancelfn) {
+        // Cannot cancel a cancelled or completed future.
+        if (!$this->dereffn && !$this->cancelfn) {
             return false;
         }
 
+        // If this is here, the it hasn't dereferenced. Remove the function and
+        // provide a data variable to prevent it from dereferencing.
+        $this->dereffn = null;
         $this->data = [];
         $this->isCancelled = true;
+
+        // if no cancel function is provided, then we cannot truly cancel.
+        if (!$this->cancelfn) {
+            return false;
+        }
+
+        // Return the result of invoking the cancel function.
         $cancelfn = $this->cancelfn;
-        // Remove these reference because they are no longer necessary.
-        $this->dereffn = $this->cancelfn = null;
+        $this->cancelfn = null;
 
         return $cancelfn($this);
     }

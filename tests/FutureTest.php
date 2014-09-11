@@ -45,7 +45,7 @@ class FutureTest extends \PHPUnit_Framework_TestCase
 
     public function testCanCancelFuture()
     {
-        $called = false;
+        $called = [];
         $f = new Future(function () use (&$called) {
             $called[] = 'deref';
             return ['status' => 200];
@@ -59,6 +59,38 @@ class FutureTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayNotHasKey('status', $f);
         $this->assertTrue($f->cancelled());
         $this->assertFalse($f->cancel());
+        $this->assertFalse($f->dereferenced());
+    }
+
+    public function testCancellingCompletedFutureReturnsFalse()
+    {
+        $called = [];
+        $f = new Future(function () use (&$called) {
+            $called[] = 'deref';
+            return ['status' => 200];
+        }, function () use (&$called) {
+            $called[] = 'cancel';
+            return true;
+        });
+        $f->deref();
+        $this->assertFalse($f->cancel());
+        $this->assertEquals(['status' => 200], $f->deref());
+        $this->assertEquals(['deref'], $called);
+        $this->assertFalse($f->cancelled());
+        $this->assertTrue($f->dereferenced());
+    }
+
+    public function testCancellingWithNoCancelFunctionPreventsDeref()
+    {
+        $called = [];
+        $f = new Future(function () use (&$called) {
+            $called[] = 'deref';
+            return ['status' => 200];
+        });
+        $this->assertFalse($f->cancel());
+        $this->assertTrue($f->cancelled());
+        $this->assertEquals([], $f->deref());
+        $this->assertEquals([], $called);
         $this->assertFalse($f->dereferenced());
     }
 }
