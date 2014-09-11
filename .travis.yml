@@ -13,7 +13,6 @@ before_script:
   - ~/.nvm/nvm.sh run v0.6.14
 
 script:
-  - make start-server
   - make test
 
 matrix:
