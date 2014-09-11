@@ -121,7 +121,7 @@ class Server
         self::$started = false;
     }
 
-    public static function wait($maxTries = 5)
+    public static function wait($maxTries = 20)
     {
         $tries = 0;
         while (!self::isListening() && ++$tries < $maxTries) {
@@ -135,11 +135,13 @@ class Server
 
     public static function start()
     {
-        if (self::$started){
+        if (self::$started) {
             return;
         }
 
-        if (!self::isListening()) {
+        try {
+            self::wait();
+        } catch (\Exception $e) {
             exec('node ' . __DIR__ . \DIRECTORY_SEPARATOR . 'server.js '
                 . self::$port . ' >> /tmp/server.log 2>&1 &');
             self::wait();

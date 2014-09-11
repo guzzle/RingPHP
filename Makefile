@@ -11,11 +11,11 @@ stop-server:
 	true
 
 test: start-server
-	vendor/bin/phpunit
+	vendor/bin/phpunit $(TEST)
 	$(MAKE) stop-server
 
 coverage: start-server
-	vendor/bin/phpunit --coverage-html=build/artifacts/coverage
+	vendor/bin/phpunit --coverage-html=build/artifacts/coverage $(TEST)
 	$(MAKE) stop-server
 
 view-coverage:
