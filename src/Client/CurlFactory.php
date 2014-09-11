@@ -161,6 +161,7 @@ class CurlFactory
     private function applyMethod(array $request, array &$options)
     {
         $method = $request['http_method'];
+        $options[CURLOPT_CUSTOMREQUEST] = $method;
 
         if ($method == 'HEAD') {
             $options[CURLOPT_NOBODY] = true;
@@ -171,7 +172,6 @@ class CurlFactory
                 $options[CURLOPT_INFILE]
             );
         } else {
-            $options[CURLOPT_CUSTOMREQUEST] = $method;
             if (isset($request['body'])) {
                 $this->applyBody($request, $options);
             }
