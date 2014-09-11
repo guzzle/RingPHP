@@ -1,6 +1,7 @@
 <?php
 namespace GuzzleHttp\Tests\Ring\Client;
 
+use GuzzleHttp\Ring\Client\CurlMultiAdapter;
 use GuzzleHttp\Ring\Client\StreamAdapter;
 use GuzzleHttp\Ring\Core;
 
@@ -98,12 +99,14 @@ class Server
             }
             // Ensure that headers are all arrays
             if (isset($res['headers'])) {
-                foreach ($res['headers'] as &$header) {
-                    $header = (array) $header;
+                foreach ($res['headers'] as &$h) {
+                    $h = (array) $h;
                 }
+                unset($h);
             }
         }
 
+        unset($res);
         return $result;
     }
 
@@ -165,7 +168,7 @@ class Server
         array $client = []
     ) {
         if (!self::$client) {
-            self::$client = new StreamAdapter();
+            self::$client = new CurlMultiAdapter();
         }
 
         $request = [
