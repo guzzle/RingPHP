@@ -69,7 +69,7 @@ class CurlAdapter
         $response['curl']['error'] = curl_error($h);
         $response['curl']['errno'] = curl_errno($h);
         $this->releaseEasyHandle($h);
-        $response = CurlFactory::createResponse($request, $response, $hd, $bd);
+        $response = CurlFactory::createResponse($response, $hd, $bd);
 
         if (isset($request['then'])) {
             $then = $request['then'];

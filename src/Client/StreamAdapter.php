@@ -28,26 +28,30 @@ class StreamAdapter
             $stream = $this->createStream($url, $request, $headers);
             return $this->createResponse($request, $url, $headers, $stream);
         } catch (\Exception $e) {
-            return $this->createErrorResponse($url, $request, $e);
+            return $this->createErrorResponse($url, $e);
         }
     }
 
-    private function createResponse(
-        array $request,
-        $url,
-        array $headers,
-        $stream
-    ) {
-        $parts = explode(' ', array_shift($headers), 3);
+    private function createResponse(array $request, $url, array $hdrs, $stream)
+    {
+        $parts = explode(' ', array_shift($hdrs), 3);
         $response = [
             'status'         => $parts[1],
             'reason'         => isset($parts[2]) ? $parts[2] : null,
-            'headers'        => Core::headersFromLines($headers),
+            'headers'        => Core::headersFromLines($hdrs),
             'effective_url'  => $url
         ];
 
         $stream = $this->checkDecode($request, $response, $stream);
-        $stream = $this->checkStreaming($request, $stream);
+
+        // If not streaming, then drain the response into a stream.
+        if (empty($request['client']['stream'])) {
+            $dest = isset($request['client']['save_to'])
+                ? $request['client']['save_to']
+                : fopen('php://temp', 'r+');
+            $stream = $this->drain($stream, $dest);
+        }
+
         $response['body'] = $stream;
 
         if (isset($request['then'])) {
@@ -68,19 +72,6 @@ class StreamAdapter
                     $stream = new InflateStream(Stream::factory($stream));
                     break;
             }
-        }
-
-        return $stream;
-    }
-
-    private function checkStreaming(array $request, $stream)
-    {
-        // If not streaming, then drain the response into a stream.
-        if (empty($request['client']['stream'])) {
-            $dest = isset($request['client']['save_to'])
-                ? $request['client']['save_to']
-                : fopen('php://temp', 'r+');
-            $stream = $this->drain($stream, $dest);
         }
 
         return $stream;
@@ -123,13 +114,12 @@ class StreamAdapter
     /**
      * Creates an error response for the given stream.
      *
-     * @param            $url
-     * @param            $request
+     * @param string     $url
      * @param \Exception $e
      *
      * @return array
      */
-    private function createErrorResponse($url, $request, \Exception $e)
+    private function createErrorResponse($url, \Exception $e)
     {
         if (!($e instanceof HandlerException)) {
             $e = new HandlerException($e->getMessage(), 0, $e);
@@ -211,7 +201,7 @@ class StreamAdapter
             $url,
             $request,
             $options,
-            $this->createStreamContext($request, $options, $params),
+            $this->createContext($request, $options, $params),
             $http_response_header
         );
     }
@@ -357,23 +347,22 @@ class StreamAdapter
 
     private function applyCustomOptions(array $request, array &$options)
     {
-        // Overwrite any generated options with custom options
-        if (isset($request['client']['stream_context'])) {
-            if (!is_array($request['client']['stream_context'])) {
-                throw new \RuntimeException('stream_context must be an array');
-            }
-            $options = array_replace_recursive(
-                $options,
-                $request['client']['stream_context']
-            );
+        if (!isset($request['client']['stream_context'])) {
+            return;
         }
+
+        if (!is_array($request['client']['stream_context'])) {
+            throw new \RuntimeException('stream_context must be an array');
+        }
+
+        $options = array_replace_recursive(
+            $options,
+            $request['client']['stream_context']
+        );
     }
 
-    private function createStreamContext(
-        array $request,
-        array $options,
-        array $params
-    ) {
+    private function createContext(array $request, array $options, array $params)
+    {
         $this->applyCustomOptions($request, $options);
         return $this->createResource(
             function () use ($request, $options, $params) {

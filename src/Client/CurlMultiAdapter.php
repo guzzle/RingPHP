@@ -88,7 +88,7 @@ class CurlMultiAdapter
         $future = new Future(
             function () use ($request, &$headers, $body, $handle, &$atom) {
                 if (!$atom) {
-                    $atom = $this->getFutureResult($request, $headers, $body, $handle);
+                    $atom = $this->getFutureResult($headers, $body, $handle);
                     if (isset($request['then'])) {
                         $then = $request['then'];
                         $atom = $then($atom) ?: $atom;
@@ -176,7 +176,7 @@ class CurlMultiAdapter
         }
     }
 
-    private function getFutureResult($request, &$headers, $body, $handle)
+    private function getFutureResult(&$headers, $body, $handle)
     {
         $id = (int) $handle;
         unset($this->futures[$id]);
@@ -186,8 +186,6 @@ class CurlMultiAdapter
         $result = $this->processed[$id];
         $this->removeProcessed($id);
 
-        return CurlFactory::createResponse(
-            $request, $result[2], $headers, $body
-        );
+        return CurlFactory::createResponse($result[2], $headers, $body);
     }
 }

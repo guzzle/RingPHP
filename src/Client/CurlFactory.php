@@ -56,7 +56,6 @@ class CurlFactory
     /**
      * Creates a response hash from a cURL result.
      *
-     * @param array    $request  Request that was sent
      * @param array    $response Response hash to update
      * @param array    $headers  Headers received during transfer
      * @param resource $body     Body fopen response
@@ -64,7 +63,6 @@ class CurlFactory
      * @return array
      */
     public static function createResponse(
-        array $request,
         array $response,
         array $headers,
         $body
@@ -86,8 +84,7 @@ class CurlFactory
         }
 
         return !empty($response['curl']['errno']) || !isset($startLine[1])
-            ? self::createErrorResponse($request, $response)
-            : $response;
+            ? self::createErrorResponse($response) : $response;
     }
 
     private function getOutputBody(array $request, array &$options)
@@ -109,11 +106,8 @@ class CurlFactory
         return null;
     }
 
-    private static function createErrorResponse(
-        array $request,
-        array $response,
-        $message = ''
-    ) {
+    private static function createErrorResponse(array $response, $message = '')
+    {
         if (!$message) {
             $message = sprintf('cURL error %s: %s',
                 $response['curl']['errno'],
@@ -138,6 +132,7 @@ class CurlFactory
 
         $options = [
             '_headers'             => $request['headers'],
+            CURLOPT_CUSTOMREQUEST  => $request['http_method'],
             CURLOPT_URL            => $url,
             CURLOPT_RETURNTRANSFER => false,
             CURLOPT_HEADER         => false,
@@ -160,24 +155,27 @@ class CurlFactory
 
     private function applyMethod(array $request, array &$options)
     {
-        $method = $request['http_method'];
-        $options[CURLOPT_CUSTOMREQUEST] = $method;
-
         if (isset($request['body'])) {
             $this->applyBody($request, $options);
-        } elseif ($method == 'HEAD') {
-            $options[CURLOPT_NOBODY] = true;
-            unset(
-                $options[CURLOPT_WRITEFUNCTION],
-                $options[CURLOPT_READFUNCTION],
-                $options[CURLOPT_FILE],
-                $options[CURLOPT_INFILE]
-            );
-        } elseif ($method == 'PUT' || $method == 'POST') {
-            // See http://tools.ietf.org/html/rfc7230#section-3.3.2
-            if (!Core::hasHeader($request, 'Content-Length')) {
-                $options[CURLOPT_HTTPHEADER][] = 'Content-Length: 0';
-            }
+            return;
+        }
+
+        switch ($request['http_method']) {
+            case 'PUT':
+            case 'POST':
+                // See http://tools.ietf.org/html/rfc7230#section-3.3.2
+                if (!Core::hasHeader($request, 'Content-Length')) {
+                    $options[CURLOPT_HTTPHEADER][] = 'Content-Length: 0';
+                }
+                break;
+            case 'HEAD':
+                $options[CURLOPT_NOBODY] = true;
+                unset(
+                    $options[CURLOPT_WRITEFUNCTION],
+                    $options[CURLOPT_READFUNCTION],
+                    $options[CURLOPT_FILE],
+                    $options[CURLOPT_INFILE]
+                );
         }
     }
 
