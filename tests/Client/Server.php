@@ -33,7 +33,6 @@ class Server
      */
     public static function flush()
     {
-        self::start();
         self::send('DELETE', '/guzzle-server/requests');
     }
 
@@ -49,7 +48,6 @@ class Server
      */
     public static function enqueue(array $responses)
     {
-        self::start();
         $data = [];
 
         foreach ($responses as $response) {
