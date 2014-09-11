@@ -25,9 +25,6 @@ class Server
     public static $host = '127.0.0.1:8125';
     public static $port = 8125;
 
-    /** @var callable */
-    private static $client;
-
     /**
      * Flush the received requests from the server
      * @throws \RuntimeException
@@ -167,9 +164,7 @@ class Server
         $body = null,
         array $client = []
     ) {
-        if (!self::$client) {
-            self::$client = new StreamAdapter();
-        }
+        $adapter = new StreamAdapter();
 
         $request = [
             'http_method'  => $method,
@@ -184,6 +179,6 @@ class Server
             $request['headers']['content-length'] = [strlen($body)];
         }
 
-        return call_user_func(self::$client, $request);
+        return $adapter($request);
     }
 }
