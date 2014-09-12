@@ -1,6 +1,8 @@
 <?php
 namespace GuzzleHttp\Ring;
 
+use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
+
 /**
  * Future ring response that may or may not have completed.
  *
@@ -25,28 +27,7 @@ namespace GuzzleHttp\Ring;
  */
 class Future implements RingFutureInterface
 {
-    /** @var callable|null Dereference function */
-    private $dereffn;
-
-    /** @var callable|null Cancel function */
-    private $cancelfn;
-
-    /** @var bool */
-    private $isCancelled = false;
-
-    /**
-     * @param callable $deref  Function that blocks until the response is complete
-     * @param callable $cancel If possible and reasonable, provide a function
-     *                         that can be used to cancel the future from
-     *                         sending. The cancel function accepts the
-     *                         future object and returns true on a successful
-     *                         cancel and false on a failed cancel.
-     */
-    public function __construct(callable $deref, callable $cancel = null)
-    {
-        $this->dereffn = $deref;
-        $this->cancelfn = $cancel;
-    }
+    use BaseFutureTrait;
 
     /**
      * Returns the future response as a regular response array.
@@ -56,41 +37,6 @@ class Future implements RingFutureInterface
     {
         // Return the data if available, or call __get() to dereference.
         return $this->data;
-    }
-
-    public function realized()
-    {
-        return $this->dereffn === null && !$this->isCancelled;
-    }
-
-    public function cancel()
-    {
-        // Cannot cancel a cancelled or completed future.
-        if (!$this->dereffn && !$this->cancelfn) {
-            return false;
-        }
-
-        // If this is here, the it hasn't realized. Remove the function and
-        // provide a data variable to prevent it from dereferencing.
-        $this->dereffn = null;
-        $this->data = [];
-        $this->isCancelled = true;
-
-        // if no cancel function is provided, then we cannot truly cancel.
-        if (!$this->cancelfn) {
-            return false;
-        }
-
-        // Return the result of invoking the cancel function.
-        $cancelfn = $this->cancelfn;
-        $this->cancelfn = null;
-
-        return $cancelfn($this);
-    }
-
-    public function cancelled()
-    {
-        return $this->isCancelled;
     }
 
     public function offsetExists($offset)
@@ -126,12 +72,16 @@ class Future implements RingFutureInterface
     /** @internal */
     public function __get($name)
     {
-        if ($name === 'data') {
-            $deref = $this->dereffn;
-            $this->dereffn = $this->cancelfn = null;
-            return $this->data = $deref();
+        if ($name !== 'data') {
+            throw new \RuntimeException("Class has no {$name} property");
+        } elseif ($this->isCancelled) {
+            throw new CancelledFutureAccessException('You are attempting '
+                . 'to access a future that has been cancelled.');
         }
 
-        throw new \RuntimeException("Class has no $name property");
+        $deref = $this->dereffn;
+        $this->dereffn = $this->cancelfn = null;
+
+        return $this->data = $deref();
     }
 }

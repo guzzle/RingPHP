@@ -54,9 +54,7 @@ class FutureTest extends \PHPUnit_Framework_TestCase
             return true;
         });
         $this->assertTrue($f->cancel());
-        $this->assertEquals([], $f->deref());
         $this->assertEquals(['cancel'], $called);
-        $this->assertArrayNotHasKey('status', $f);
         $this->assertTrue($f->cancelled());
         $this->assertFalse($f->cancel());
         $this->assertFalse($f->realized());
@@ -89,8 +87,17 @@ class FutureTest extends \PHPUnit_Framework_TestCase
         });
         $this->assertFalse($f->cancel());
         $this->assertTrue($f->cancelled());
-        $this->assertEquals([], $f->deref());
         $this->assertEquals([], $called);
         $this->assertFalse($f->realized());
+    }
+
+    /**
+     * @expectedException \GuzzleHttp\Ring\Exception\CancelledFutureAccessException
+     */
+    public function testAccessingCancelledResponseRaisesException()
+    {
+        $f = new Future(function () {});
+        $f->cancel();
+        $f['status'];
     }
 }
