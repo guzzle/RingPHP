@@ -152,7 +152,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         foreach ($responses as $response) {
             $this->assertEquals([], $response->data);
             $this->assertTrue($response->cancelled());
-            $this->assertFalse($response->dereferenced());
+            $this->assertFalse($response->realized());
         }
     }
 

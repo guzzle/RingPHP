@@ -7,10 +7,10 @@ namespace GuzzleHttp\Ring;
  * Future acts just like a normal response hash. It can be iterated, counted,
  * and you can access it using associative array style access. When the future
  * response is used like a normal response hash, the future of the response is
- * "dereferenced" (meaning blocks until the request has completed), and the
+ * "realized" (meaning blocks until the request has completed), and the
  * actual response is then used as the internal response data.
  *
- * Futures can be cancelled if they have not already been derefereced.
+ * Futures can be cancelled if they have not already been realized.
  * Cancelling a future will prevent the future from executing the dereference
  * function and will execute the function provided to the future that actually
  * handles the cancellation (e.g., telling an event loop to stop sending a
@@ -21,7 +21,7 @@ namespace GuzzleHttp\Ring;
  *
  * @property array $data Actual data used by the future. Accessing this
  *                       property will cause the future to block if it has not
- *                       already dereferenced the future.
+ *                       already realized the future.
  */
 class Future implements \ArrayAccess, \Countable, \IteratorAggregate
 {
@@ -62,20 +62,21 @@ class Future implements \ArrayAccess, \Countable, \IteratorAggregate
     }
 
     /**
-     * Returns true if the future has been dereferenced.
+     * Returns true if the future has been realized, meaning a result or error
+     * is available.
      *
      * @return bool
      */
-    public function dereferenced()
+    public function realized()
     {
         return $this->dereffn === null && !$this->isCancelled;
     }
 
     /**
-     * Cancels the future response from sending a request when dereferenced.
+     * Cancels the future response from sending a request when realized.
      *
      * If the future is already done or cancelled, return false. If the future
-     * has not been dereferenced, then the dereference function will be
+     * has not been realized, then the dereference function will be
      * disassociated from the future, will not be called, and the future state
      * will be changed to cancelled. If the future has a cancel function, then
      * it will be invoked and the invocation result is returned.
@@ -89,7 +90,7 @@ class Future implements \ArrayAccess, \Countable, \IteratorAggregate
             return false;
         }
 
-        // If this is here, the it hasn't dereferenced. Remove the function and
+        // If this is here, the it hasn't realized. Remove the function and
         // provide a data variable to prevent it from dereferencing.
         $this->dereffn = null;
         $this->data = [];

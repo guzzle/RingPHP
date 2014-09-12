@@ -59,7 +59,7 @@ class FutureTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayNotHasKey('status', $f);
         $this->assertTrue($f->cancelled());
         $this->assertFalse($f->cancel());
-        $this->assertFalse($f->dereferenced());
+        $this->assertFalse($f->realized());
     }
 
     public function testCancellingCompletedFutureReturnsFalse()
@@ -77,7 +77,7 @@ class FutureTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(['status' => 200], $f->deref());
         $this->assertEquals(['deref'], $called);
         $this->assertFalse($f->cancelled());
-        $this->assertTrue($f->dereferenced());
+        $this->assertTrue($f->realized());
     }
 
     public function testCancellingWithNoCancelFunctionPreventsDeref()
@@ -91,6 +91,6 @@ class FutureTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($f->cancelled());
         $this->assertEquals([], $f->deref());
         $this->assertEquals([], $called);
-        $this->assertFalse($f->dereferenced());
+        $this->assertFalse($f->realized());
     }
 }
