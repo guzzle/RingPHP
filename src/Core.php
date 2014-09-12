@@ -24,7 +24,7 @@ class Core
      * @param array    $request Request to update
      * @param callable $fn      Function to invoke on completion.
      *
-     * @return array|Future
+     * @return array Returns a modified request array.
      */
     public static function then(array $request, callable $fn)
     {
@@ -65,13 +65,15 @@ class Core
      *
      * If the provided response is a normal response hash, it is returned.
      *
-     * @param array|Future $response Response to dereference
+     * @param array|FutureInterface $response Response to dereference
      *
      * @return array
      */
     public static function deref($response)
     {
-        return $response instanceof Future ? $response->deref() : $response;
+        return $response instanceof FutureInterface
+            ? $response->deref()
+            : $response;
     }
 
     /**
@@ -226,7 +228,7 @@ class Core
     /**
      * Reads the body of a message into a string.
      *
-     * @param array|Future $message Message that contains a "body" key.
+     * @param array|RingFutureInterface $message Message containing a "body" key
      *
      * @return null|string Returns the body as a string or null if not set.
      * @throws \InvalidArgumentException if a request body is invalid.

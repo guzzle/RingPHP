@@ -2,13 +2,13 @@
 namespace GuzzleHttp\Ring;
 
 /**
- * Represents a future response that can be used just like a normal response.
+ * Future ring response that may or may not have completed.
  *
- * Future acts just like a normal response hash. It can be iterated, counted,
- * and you can access it using associative array style access. When the future
- * response is used like a normal response hash, the future of the response is
- * "realized" (meaning blocks until the request has completed), and the
- * actual response is then used as the internal response data.
+ * Future responses act just like a normal response hash. It can be iterated,
+ * counted, and you can access it using associative array style access. When
+ * the future response is used like a normal response hash, the future of the
+ * response is "realized" (meaning blocks until the request has completed), and
+ * the actual response is then used as the internal response data.
  *
  * Futures can be cancelled if they have not already been realized.
  * Cancelling a future will prevent the future from executing the dereference
@@ -23,7 +23,7 @@ namespace GuzzleHttp\Ring;
  *                       property will cause the future to block if it has not
  *                       already realized the future.
  */
-class Future implements \ArrayAccess, \Countable, \IteratorAggregate
+class Future implements RingFutureInterface
 {
     /** @var callable|null Dereference function */
     private $dereffn;
@@ -50,10 +50,7 @@ class Future implements \ArrayAccess, \Countable, \IteratorAggregate
 
     /**
      * Returns the future response as a regular response array.
-     *
-     * This method must block until the future has a result or is cancelled.
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function deref()
     {
@@ -61,28 +58,11 @@ class Future implements \ArrayAccess, \Countable, \IteratorAggregate
         return $this->data;
     }
 
-    /**
-     * Returns true if the future has been realized, meaning a result or error
-     * is available.
-     *
-     * @return bool
-     */
     public function realized()
     {
         return $this->dereffn === null && !$this->isCancelled;
     }
 
-    /**
-     * Cancels the future response from sending a request when realized.
-     *
-     * If the future is already done or cancelled, return false. If the future
-     * has not been realized, then the dereference function will be
-     * disassociated from the future, will not be called, and the future state
-     * will be changed to cancelled. If the future has a cancel function, then
-     * it will be invoked and the invocation result is returned.
-     *
-     * @return bool
-     */
     public function cancel()
     {
         // Cannot cancel a cancelled or completed future.
@@ -108,11 +88,6 @@ class Future implements \ArrayAccess, \Countable, \IteratorAggregate
         return $cancelfn($this);
     }
 
-    /**
-     * Returns true if the future was cancelled.
-     *
-     * @return bool
-     */
     public function cancelled()
     {
         return $this->isCancelled;
