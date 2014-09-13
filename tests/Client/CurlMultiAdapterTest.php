@@ -164,9 +164,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]]
         ]);
-        $cancelFn = $this->readAttribute($response, 'cancelfn');
         $response->deref();
-        $this->assertFalse(call_user_func($cancelFn));
         $this->assertFalse($response->cancel());
     }
 }
