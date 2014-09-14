@@ -120,8 +120,8 @@ class CurlMultiAdapter
 
         $future = empty($request['future']) ? false : $request['future'];
 
-        // "batch" futures are only sent once the pool has many requests.
-        if ($future !== 'batch') {
+        // "lazy" futures are only sent once the pool has many requests.
+        if ($future !== 'lazy') {
             do {
                 $mrc = curl_multi_exec($this->mh, $this->active);
             } while ($mrc === CURLM_CALL_MULTI_PERFORM);

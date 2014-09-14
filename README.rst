@@ -126,9 +126,12 @@ future
     You can provide a string value to specify fine-tuned future behaviors that
     may be specific to the underlying adapters you are using.
 
-    - batch: Set to ``batch`` to request that the adapter does not open and
+    - lazy: Set to ``lazy`` to request that the adapter does not open and
       send the request immediately, but rather only open and send the request
-      once a pool of requests is ready to send.
+      once the future's value is needed (e.g., it is accessed or the adapter
+      must flush the outstanding futures). This option is often useful for
+      sending a large number of requests concurrently to allow adapters to
+      better take advantage of non-blocking transfers.
 
     If an adapter does not implement or understand a provided string value,
     then the request MUST be treated as if the user provided ``true`` rather

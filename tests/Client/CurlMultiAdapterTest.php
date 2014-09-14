@@ -86,7 +86,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $request = [
             'http_method' => 'PUT',
             'headers'     => ['host' => [Server::$host]],
-            'future'      => 'batch' // passing this to control the test
+            'future'      => 'lazy' // passing this to control the test
         ];
         $response = ['status' => 200];
         Server::flush();
@@ -141,7 +141,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             $response = $a([
                 'http_method' => 'GET',
                 'headers'     => ['host' => [Server::$host]],
-                'future'      => 'batch'
+                'future'      => 'lazy'
             ]);
             $this->assertTrue($response->cancel());
             $responses[] = $response;
