@@ -59,4 +59,20 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('GuzzleHttp\Ring\Future', $response);
         $this->assertEquals(304, $response['status']);
     }
+
+    public function testReturnsFuturesAndProxiesCancel()
+    {
+        $c = null;
+        $future = new Future(function () {}, function () use (&$c) {
+            $c = true;
+            return true;
+        });
+        $mock = new MockAdapter($future);
+        $response = $mock([
+            'then' => function (array $response) {}
+        ]);
+        $this->assertInstanceOf('GuzzleHttp\Ring\Future', $response);
+        $this->assertTrue($response->cancel());
+        $this->assertTrue($c);
+    }
 }

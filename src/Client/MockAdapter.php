@@ -39,6 +39,8 @@ class MockAdapter
             if ($response instanceof RingFutureInterface) {
                 $response = new Future(function () use ($request, $response) {
                     return $this->callThen($request, Core::deref($response));
+                }, function () use ($response) {
+                    return $response->cancel();
                 });
             } else {
                 $response = $this->callThen($request, $response);
