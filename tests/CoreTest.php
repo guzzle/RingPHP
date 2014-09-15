@@ -257,6 +257,15 @@ class CoreTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertTrue(Core::rewindBody(['body' => new StrClass()]));
     }
+
+    public function testDescribesType()
+    {
+        $this->assertEquals('string', Core::describeType('foo'));
+        $this->assertEquals(
+            'object (GuzzleHttp\Tests\Ring\StrClass)',
+            Core::describeType(new StrClass())
+        );
+    }
 }
 
 final class StrClass

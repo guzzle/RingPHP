@@ -256,7 +256,7 @@ class Core
                 }
             default:
                 throw new \InvalidArgumentException('Invalid request body: '
-                    . gettype($message['body']));
+                    . self::describeType($message['body']));
         }
     }
 
@@ -289,5 +289,24 @@ class Core
         return is_string($message['body'])
             || (is_object($message['body'])
                 && method_exists($message['body'], '__toString'));
+    }
+
+    /**
+     * Debug function used to describe the provided value type and class.
+     *
+     * @param mixed $input
+     *
+     * @return string Returns a string containing the type of the variable and
+     *                if a class is provided, the class name.
+     */
+    public static function describeType($input)
+    {
+        $description = gettype($input);
+
+        if ($description == 'object') {
+            $description .= ' (' . get_class($input) . ')';
+        }
+
+        return $description;
     }
 }
