@@ -56,13 +56,17 @@ class CurlFactory
     /**
      * Creates a response hash from a cURL result.
      *
-     * @param array    $response Response hash to update
-     * @param array    $headers  Headers received during transfer
-     * @param resource $body     Body fopen response
+     * @param callable $adapter  Adapter that was used.
+     * @param array    $request  Request that sent.
+     * @param array    $response Response hash to update.
+     * @param array    $headers  Headers received during transfer.
+     * @param resource $body     Body fopen response.
      *
      * @return array
      */
     public static function createResponse(
+        callable $adapter,
+        array $request,
         array $response,
         array $headers,
         $body
@@ -71,10 +75,10 @@ class CurlFactory
             $response['effective_url'] = $response['transfer_stats']['url'];
         }
 
+        $response['body'] = $body;
         if (is_resource($body)) {
             rewind($body);
         }
-        $response['body'] = $body;
 
         if (isset($headers[0])) {
             $startLine = explode(' ', array_shift($headers), 3);
@@ -84,7 +88,36 @@ class CurlFactory
         }
 
         return !empty($response['curl']['errno']) || !isset($startLine[1])
-            ? self::createErrorResponse($response) : $response;
+            ? self::createErrorResponse($adapter, $request, $response)
+            : $response;
+    }
+
+    private static function createErrorResponse(
+        callable $adapter,
+        array $request,
+        array $response
+    ) {
+        if (!isset($response['err_message'])
+            && empty($response['curl']['errno'])
+        ) {
+            return self::retryFailedRewind($adapter, $request, $response);
+        }
+
+        $message = isset($response['err_message'])
+            ? $response['err_message']
+            : sprintf('cURL error %s: %s',
+                $response['curl']['errno'],
+                isset($response['curl']['error'])
+                    ? $response['curl']['error']
+                    : 'See http://curl.haxx.se/libcurl/c/libcurl-errors.html');
+
+        return $response + [
+            'status'  => null,
+            'reason'  => null,
+            'body'    => null,
+            'headers' => [],
+            'error'   => new HandlerException($message)
+        ];
     }
 
     private function getOutputBody(array $request, array &$options)
@@ -104,26 +137,6 @@ class CurlFactory
         }
 
         return null;
-    }
-
-    private static function createErrorResponse(array $response, $message = '')
-    {
-        if (!$message) {
-            $message = sprintf('cURL error %s: %s',
-                $response['curl']['errno'],
-                isset($response['curl']['error'])
-                    ? $response['curl']['error']
-                    : 'See http://curl.haxx.se/libcurl/c/libcurl-errors.html'
-            );
-        }
-
-        return $response + [
-            'status'  => null,
-            'reason'  => null,
-            'body'    => null,
-            'headers' => [],
-            'error'   => new HandlerException($message)
-        ];
     }
 
     private function getDefaultOptions(array $request, array &$headers)
@@ -452,5 +465,38 @@ class CurlFactory
                 break;
             }
         }
+    }
+
+    /**
+     * This function ensures that a response was set on a transaction. If one
+     * was not set, then the request is retried if possible. This error
+     * typically means you are sending a payload, curl encountered a
+     * "Connection died, retrying a fresh connect" error, tried to rewind the
+     * stream, and then encountered a "necessary data rewind wasn't possible"
+     * error, causing the request to be sent through curl_multi_info_read()
+     * without an error status.
+     */
+    private static function retryFailedRewind(
+        callable $adapter,
+        array $request,
+        array $response
+    ) {
+        // If there is no body, then there is some other kind of issue. This
+        // is weird and should probably never happen.
+        if (!isset($request['body'])) {
+            $response['err_message'] = 'No response was received for a request '
+                . 'with no body. This could mean that you are saturating your '
+                . 'network.';
+            return self::createErrorResponse($adapter, $request, $response);
+        }
+
+        if (!Core::rewindBody($request)) {
+            $response['err_message'] = 'The connection unexpectedly failed '
+                . 'without providing an error. The request would have been '
+                . 'retried, but attempting to rewind the request body failed.';
+            return self::createErrorResponse($adapter, $request, $response);
+        }
+
+        return $adapter($request);
     }
 }

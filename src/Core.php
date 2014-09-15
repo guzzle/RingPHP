@@ -259,4 +259,35 @@ class Core
                     . gettype($message['body']));
         }
     }
+
+    /**
+     * Rewind the body of the provided message if possible.
+     *
+     * @param array $message Message that contains a 'body' field.
+     *
+     * @return bool Returns true on success, false on failure
+     */
+    public static function rewindBody(array $message)
+    {
+        if ($message['body'] instanceof StreamInterface) {
+            return $message['body']->seek(0);
+        }
+
+        if ($message['body'] instanceof \Generator) {
+            return false;
+        }
+
+        if ($message['body'] instanceof \Iterator) {
+            $message['body']->rewind();
+            return true;
+        }
+
+        if (is_resource($message['body'])) {
+            return rewind($message['body']);
+        }
+
+        return is_string($message['body'])
+            || (is_object($message['body'])
+                && method_exists($message['body'], '__toString'));
+    }
 }

@@ -17,7 +17,8 @@ use GuzzleHttp\Ring\Client\CurlFactory;
 use GuzzleHttp\Ring\Client\CurlMultiAdapter;
 use GuzzleHttp\Ring\Core;
 use GuzzleHttp\Stream\FnStream;
-use GuzzleHttp\Stream\Stream;
+    use GuzzleHttp\Stream\NoSeekStream;
+    use GuzzleHttp\Stream\Stream;
 
 class CurlFactoryTest extends \PHPUnit_Framework_TestCase
 {
@@ -575,6 +576,48 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('POST', $received['http_method']);
         $this->assertNull(Core::header($received, 'content-type'));
         $this->assertSame('0', Core::firstHeader($received, 'content-length'));
+    }
+
+    public function testFailsWhenNoResponseAndNoBody()
+    {
+        $res = CurlFactory::createResponse(function () {}, [], [], [], null);
+        $this->assertInstanceOf('GuzzleHttp\Ring\HandlerException', $res['error']);
+        $this->assertContains(
+            'No response was received for a request with no body',
+            $res['error']->getMessage()
+        );
+    }
+
+    public function testFailsWhenCannotRewindRetry()
+    {
+        $res = CurlFactory::createResponse(function () {}, [
+            'body' => new NoSeekStream(Stream::factory('foo'))
+        ], [], [], null);
+        $this->assertInstanceOf('GuzzleHttp\Ring\HandlerException', $res['error']);
+        $this->assertContains(
+            'rewind the request body failed',
+            $res['error']->getMessage()
+        );
+    }
+
+    public function testRetriesWhenBodyCanBeRewound()
+    {
+        $callAdapter = $called = false;
+        $res = CurlFactory::createResponse(function () use (&$callAdapter) {
+            $callAdapter = true;
+            return ['status' => 200];
+        }, [
+            'body' => FnStream::decorate(Stream::factory('test'), [
+                'seek' => function () use (&$called) {
+                    $called = true;
+                    return true;
+                }
+            ])
+        ], [], [], null);
+
+        $this->assertTrue($callAdapter);
+        $this->assertTrue($called);
+        $this->assertEquals('200', $res['status']);
     }
 }
 

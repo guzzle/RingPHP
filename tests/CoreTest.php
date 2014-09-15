@@ -229,6 +229,34 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals([1, 2], $called['a']);
         $this->assertEquals([1, 2], $called['b']);
     }
+
+    public function testRewindsGuzzleStreams()
+    {
+        $str = Stream::factory('foo');
+        $this->assertTrue(Core::rewindBody(['body' => $str]));
+    }
+
+    public function testRewindsStreams()
+    {
+        $str = Stream::factory('foo')->detach();
+        $this->assertTrue(Core::rewindBody(['body' => $str]));
+    }
+
+    public function testRewindsIterators()
+    {
+        $iter = new \ArrayIterator(['foo']);
+        $this->assertTrue(Core::rewindBody(['body' => $iter]));
+    }
+
+    public function testRewindsStrings()
+    {
+        $this->assertTrue(Core::rewindBody(['body' => 'hi']));
+    }
+
+    public function testRewindsToStrings()
+    {
+        $this->assertTrue(Core::rewindBody(['body' => new StrClass()]));
+    }
 }
 
 final class StrClass
