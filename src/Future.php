@@ -19,7 +19,7 @@ use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
  * request or to close a socket). If no cancel function is provided, then a
  * request cannot be cancelled. If a cancel function is provided, then it
  * should accept the future as an argument and return true if the future was
- *cs
+ * successfully cancelled or false if it could not be cancelled.
  *
  * @property array $data Actual data used by the future. Accessing this
  *                       property will cause the future to block if it has not
