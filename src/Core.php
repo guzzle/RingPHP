@@ -14,8 +14,8 @@ class Core
      *
      * If an existing "then" function is present, then a new "then" will be
      * added to the request. The new "then" function will become an aggregate
-     * of the previous then function that first calls the previous function
-     * followed by the new function.
+     * of the previous then function that first calls the new function followed
+     * by the previous previous function.
      *
      * The provided function accepts the returned response, and can optionally
      * return a new response which will override the response associated with
@@ -30,9 +30,11 @@ class Core
     {
         if (isset($request['then'])) {
             $fn = function ($response) use ($request, $fn) {
+                // Call the new function first.
+                $response = $fn($response) ?: $response;
                 $then = $request['then'];
-                $result = $then($response) ?: $response;
-                return $fn($result) ?: $result;
+                // Followed by the previous function.
+                return $then($response) ?: $response;
             };
         }
 

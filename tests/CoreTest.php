@@ -17,16 +17,21 @@ class CoreTest extends \PHPUnit_Framework_TestCase
 
     public function testCreatesAggregateThensWithFirstResponse()
     {
-        $th1 = function (array $response) {
+        $called = [];
+        $th1 = function (array $response) use (&$called) {
+            $called[] = 'th1';
             $response['a'] = 1;
             return $response;
         };
-        $th2 = function (array $response) {};
+        $th2 = function (array $response) use (&$called) {
+            $called[] = 'th2';
+        };
         $request = ['then' => $th1];
         $request = Core::then($request, $th2);
         $this->assertNotSame($th1, $request['then']);
         $this->assertNotSame($th2, $request['then']);
         $this->assertEquals(['a' => 1], call_user_func($request['then'], []));
+        $this->assertEquals(['th2', 'th1'], $called);
     }
 
     public function testCreatesAggregateThensWithSecondResponse()
@@ -42,7 +47,6 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $this->assertNotSame($th2, $request['then']);
         $this->assertEquals(['a' => 1], call_user_func($request['then'], []));
     }
-
 
     public function testDerefReturnsArray()
     {
