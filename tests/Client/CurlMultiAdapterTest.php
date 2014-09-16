@@ -137,6 +137,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         Server::enqueue(array_fill_keys(range(0, 10), $response));
         $a = new CurlMultiAdapter();
         $responses = [];
+
         for ($i = 0; $i < 10; $i++) {
             $response = $a([
                 'http_method' => 'GET',

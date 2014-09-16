@@ -14,19 +14,10 @@ class CurlMultiAdapter
 {
     /** @var callable */
     private $factory;
-
-    /** @var resource */
-    private $mh;
-
-    /** @var int */
     private $selectTimeout;
-
-    /** @var bool */
+    private $mh;
     private $active;
-
     private $handles = [];
-    private $processed = [];
-    private $futures = [];
     private $maxHandles;
 
     /**
@@ -47,26 +38,20 @@ class CurlMultiAdapter
     public function __construct(array $options = [])
     {
         $this->mh = isset($options['mh'])
-            ? $options['mh']
-            : curl_multi_init();
+            ? $options['mh'] : curl_multi_init();
         $this->factory = isset($options['handle_factory'])
-            ? $options['handle_factory']
-            : new CurlFactory();
+            ? $options['handle_factory'] : new CurlFactory();
         $this->selectTimeout = isset($options['select_timeout'])
-            ? $options['select_timeout']
-            : 1;
+            ? $options['select_timeout'] : 1;
         $this->maxHandles = isset($options['max_handles'])
-            ? $options['max_handles']
-            : 100;
+            ? $options['max_handles'] : 100;
     }
 
     public function __destruct()
     {
-        // Finish any open futures before terminating the script.
-        // Be sure to shift off the array to account for subsequent futures
-        // being added while destructing.
-        while ($future = array_shift($this->futures)) {
-            $future->deref();
+        // Finish any open connections before terminating the script.
+        while ($this->handles) {
+            $this->execute();
         }
 
         if ($this->mh) {
@@ -78,47 +63,48 @@ class CurlMultiAdapter
     public function __invoke(array $request)
     {
         $factory = $this->factory;
-        // Ensure headers are by reference. They're updated elsewhere.
         $result = $factory($request);
-        $handle = $result[0];
-        $headers =& $result[1];
-        $body = $result[2];
-
         $atom = null;
+        $entry = [
+            'request'  => $request,
+            'response' => [],
+            'handle'   => $result[0],
+            'headers'  => &$result[1],
+            'body'     => $result[2],
+            'atom'     => &$atom
+        ];
+
+        $this->addRequest($entry);
+        $id = (int) $result[0];
+
         $future = new Future(
             // Dereference function
-            function () use ($request, &$headers, $body, $handle, &$atom) {
+            function () use (&$atom) {
                 if (!$atom) {
-                    $atom = $this->getFutureResult($request, $headers, $body, $handle);
-                    if (isset($request['then'])) {
-                        $then = $request['then'];
-                        $atom = $then($atom) ?: $atom;
-                    }
+                    $this->execute();
                 }
                 return $atom;
             },
             // Cancel function that removes the handle and does not finish.
-            function () use ($handle) {
-                return $this->cancel($handle);
+            function () use ($id) {
+                return $this->cancel($id);
             }
         );
 
-        $this->futures[(int) $handle] = $future;
-        $this->addRequest($request, $handle);
-
-        if (count($this->futures) >= $this->maxHandles) {
-            $future->deref();
+        // Transfer outstanding requests if there are too many open handles.
+        if (count($this->handles) >= $this->maxHandles) {
+            $this->execute();
         }
 
         return $future;
     }
 
-    private function addRequest(array $request, $handle)
+    private function addRequest(array &$entry)
     {
-        $this->handles[(int) $handle] = [$handle, &$request, []];
-        curl_multi_add_handle($this->mh, $handle);
-
-        $future = empty($request['future']) ? false : $request['future'];
+        $this->handles[(int) $entry['handle']] = $entry;
+        curl_multi_add_handle($this->mh, $entry['handle']);
+        $future = empty($entry['request']['future'])
+            ? false : $entry['request']['future'];
 
         // "lazy" futures are only sent once the pool has many requests.
         if ($future !== 'lazy') {
@@ -131,30 +117,32 @@ class CurlMultiAdapter
 
     private function removeProcessed($id)
     {
-        if (isset($this->processed[$id])) {
-            curl_multi_remove_handle($this->mh, $this->processed[$id][0]);
-            curl_close($this->processed[$id][0]);
-            unset($this->processed[$id]);
+        if (isset($this->handles[$id])) {
+            curl_multi_remove_handle(
+                $this->mh,
+                $this->handles[$id]['handle']
+            );
+            curl_close($this->handles[$id]['handle']);
+            unset($this->handles[$id]);
         }
     }
 
     /**
      * Cancels a handle from sending and removes references to it.
      *
-     * @param resource $handle Handle to cancel and remove
+     * @param int $id Handle ID to cancel and remove.
      *
      * @return bool True on success, false on failure.
      */
-    private function cancel($handle)
+    private function cancel($id)
     {
-        $id = (int) $handle;
-
-        // Cannot cancel if it has been processed or is no longer there.
-        if (isset($this->processed[$id]) || !isset($this->futures[$id])) {
+        // Cannot cancel if it has been processed.
+        if (!isset($this->handles[$id])) {
             return false;
         }
 
-        unset($this->handles[$id], $this->futures[$id], $this->processed[$id]);
+        $handle = $this->handles[$id]['handle'];
+        unset($this->handles[$id]);
         curl_multi_remove_handle($this->mh, $handle);
         curl_close($handle);
 
@@ -188,40 +176,35 @@ class CurlMultiAdapter
                 continue;
             }
 
-            $trans =& $this->handles[$id];
-            $trans[2]['transfer_stats'] = curl_getinfo($done['handle']);
+            $entry =& $this->handles[$id];
+            $entry['response']['transfer_stats'] = curl_getinfo($done['handle']);
 
             if ($done['result'] !== CURLM_OK) {
-                $trans[2]['curl']['errno'] = $done['result'];
+                $entry['response']['curl']['errno'] = $done['result'];
                 if (function_exists('curl_strerror')) {
-                    $trans[2]['curl']['error'] = curl_strerror($done['result']);
+                    $entry['response']['curl']['error'] = curl_strerror($done['result']);
                 }
             }
 
-            $this->processed[$id] = $trans;
-            unset($this->handles[$id]);
+            // Add the atom value to the entry.
+            $entry['atom'] = $this->responseFromEntry($entry);
+            $this->removeProcessed($id);
 
-            // Trigger future responses immediately if needed.
-            if (isset($this->futures[$id])) {
-                $future = $this->futures[$id];
-                unset($this->futures[$id]);
-                $future->deref();
+            if (isset($entry['request']['then'])) {
+                $then = $entry['request']['then'];
+                $entry['atom'] = $then($entry['atom'] ) ?: $entry['atom'];
             }
         }
     }
 
-    private function getFutureResult(array $request, &$headers, $body, $handle)
+    private function responseFromEntry(array $entry)
     {
-        $id = (int) $handle;
-        unset($this->futures[$id]);
-        if (!isset($this->processed[$id])) {
-            $this->execute();
-        }
-        $result = $this->processed[$id];
-        $this->removeProcessed($id);
-
         return CurlFactory::createResponse(
-            $this, $request, $result[2], $headers, $body
+            $this,
+            $entry['request'],
+            $entry['response'],
+            $entry['headers'],
+            $entry['body']
         );
     }
 }

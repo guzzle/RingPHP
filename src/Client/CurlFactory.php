@@ -75,16 +75,13 @@ class CurlFactory
             $response['effective_url'] = $response['transfer_stats']['url'];
         }
 
-        $response['body'] = $body;
-        if (is_resource($body)) {
-            rewind($body);
-        }
-
         if (isset($headers[0])) {
             $startLine = explode(' ', array_shift($headers), 3);
             $response['headers'] = Core::headersFromLines($headers);
             $response['status'] = isset($startLine[1]) ? (int) $startLine[1] : null;
             $response['reason'] = isset($startLine[2]) ? $startLine[2] : null;
+            $response['body'] = $body;
+            Core::rewindBody($response);
         }
 
         return !empty($response['curl']['errno']) || !isset($startLine[1])
