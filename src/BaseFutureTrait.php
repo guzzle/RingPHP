@@ -16,7 +16,10 @@ trait BaseFutureTrait
     private $isCancelled = false;
 
     /**
-     * @param callable $deref  Function that blocks until the response is complete
+     * @param callable $deref  Function that blocks until the response is complete.
+     *                         This function MUST return a value that can be
+     *                         understood by the future, or an exception to
+     *                         raise when the future is dereferenced.
      * @param callable $cancel If possible and reasonable, provide a function
      *                         that can be used to cancel the future from
      *                         sending. The cancel function accepts the

@@ -1,5 +1,6 @@
 <?php
 namespace GuzzleHttp\Ring\Client;
+use GuzzleHttp\Ring\Core;
 
 /**
  * HTTP adapter that uses cURL easy handles as a transport layer.
@@ -70,11 +71,7 @@ class CurlAdapter
         $response['curl']['errno'] = curl_errno($h);
         $this->releaseEasyHandle($h);
         $response = CurlFactory::createResponse($this, $request, $response, $hd, $bd);
-
-        if (isset($request['then'])) {
-            $then = $request['then'];
-            $response = $then($response) ?: $response;
-        }
+        Core::callThen($request, $response);
 
         return $response;
     }

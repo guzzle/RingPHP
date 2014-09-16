@@ -81,7 +81,15 @@ class Future implements RingFutureInterface
 
         $deref = $this->dereffn;
         $this->dereffn = $this->cancelfn = null;
+        $result = $deref();
 
-        return $this->data = $deref();
+        if (is_array($result)) {
+            return $this->data = $result;
+        } elseif ($result instanceof \Exception) {
+            throw $result;
+        }
+
+        throw new \RuntimeException('The dereference function did not '
+            . 'return an exception or array. Found ' . Core::describeType($result));
     }
 }

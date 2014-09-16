@@ -301,12 +301,41 @@ class Core
      */
     public static function describeType($input)
     {
-        $description = gettype($input);
+        switch (gettype($input)) {
+            case 'object':
+                return 'object(' . get_class($input) . ')';
+            case 'array':
+                return 'array(' . count($input) . ')';
+            default:
+                ob_start();
+                var_dump($input);
+                return rtrim(ob_get_clean());
+        }
+    }
 
-        if ($description == 'object') {
-            $description .= ' (' . get_class($input) . ')';
+    /**
+     * Handles calling the "then" option of a request.
+     *
+     * This function updates the provided "atom" by referenced, accounting for
+     * return values from the "then" function and setting the atom to an
+     * exception if one was encountered.
+     *
+     * @param array $request
+     * @param       $atom
+     */
+    public static function callThen(array $request, &$atom)
+    {
+        if (!isset($request['then'])) {
+            return;
         }
 
-        return $description;
+        try {
+            $then = $request['then'];
+            // The new value becomes the return value if one is present.
+            $atom = $then($atom) ?: $atom;
+        } catch (\Exception $e) {
+            // The atom becomes the exception if one is encountered.
+            $atom = $e;
+        }
     }
 }

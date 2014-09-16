@@ -53,11 +53,7 @@ class StreamAdapter
         }
 
         $response['body'] = $stream;
-
-        if (isset($request['then'])) {
-            $then = $request['then'];
-            $response = $then($response) ?: $response;
-        }
+        Core::callThen($request, $response);
 
         return $response;
     }

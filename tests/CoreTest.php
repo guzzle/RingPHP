@@ -258,13 +258,35 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(Core::rewindBody(['body' => new StrClass()]));
     }
 
-    public function testDescribesType()
+    public function typeProvider()
     {
-        $this->assertEquals('string', Core::describeType('foo'));
-        $this->assertEquals(
-            'object (GuzzleHttp\Tests\Ring\StrClass)',
-            Core::describeType(new StrClass())
-        );
+        return [
+            ['foo', 'string(3) "foo"'],
+            [true, 'bool(true)'],
+            [false, 'bool(false)'],
+            [10, 'int(10)'],
+            [1.0, 'double(1)'],
+            [new StrClass(), 'object(GuzzleHttp\Tests\Ring\StrClass)'],
+            [['foo'], 'array(1)']
+        ];
+    }
+
+    /**
+     * @dataProvider typeProvider
+     */
+    public function testDescribesType($input, $output)
+    {
+        $this->assertEquals($output, Core::describeType($input));
+    }
+
+    public function testCallsThenWithExceptionTrap()
+    {
+        $atom = null;
+        $request = [
+            'then' => function () { throw new \OutOfBoundsException(); }
+        ];
+        Core::callThen($request, $atom);
+        $this->assertInstanceOf('OutOfBoundsException', $atom);
     }
 }
 

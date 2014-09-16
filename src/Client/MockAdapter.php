@@ -54,10 +54,12 @@ class MockAdapter
 
     private function callThen(array $request, $response)
     {
-        $then = $request['then'];
-        $response = $then($response) ?: $response;
+        Core::callThen($request, $response);
+        if (is_array($response)) {
+            $response = $this->addMissing($response);
+        }
 
-        return $this->addMissing($response);
+        return $response;
     }
 
     private function addMissing(array $response)

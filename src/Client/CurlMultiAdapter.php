@@ -1,6 +1,7 @@
 <?php
 namespace GuzzleHttp\Ring\Client;
 
+use GuzzleHttp\Ring\Core;
 use GuzzleHttp\Ring\Future;
 
 /**
@@ -189,11 +190,7 @@ class CurlMultiAdapter
             // Add the atom value to the entry.
             $entry['atom'] = $this->responseFromEntry($entry);
             $this->removeProcessed($id);
-
-            if (isset($entry['request']['then'])) {
-                $then = $entry['request']['then'];
-                $entry['atom'] = $then($entry['atom'] ) ?: $entry['atom'];
-            }
+            Core::callThen($entry['request'], $entry['atom']);
         }
     }
 
