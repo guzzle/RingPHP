@@ -21,9 +21,9 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
     {
         $mock = new MockAdapter(['status' => 200]);
         $response = $mock([
-            'then' => function (array $response) {
+            'then' => function (array &$response) {
                 $this->assertEquals(200, $response['status']);
-                return ['status' => 304];
+                $response = ['status' => 304];
             }
         ]);
         $this->assertEquals(304, $response['status']);
@@ -51,9 +51,9 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
         });
         $mock = new MockAdapter($future);
         $response = $mock([
-            'then' => function (array $response) {
+            'then' => function (array &$response) {
                 $this->assertEquals(200, $response['status']);
-                return ['status' => 304];
+                $response = ['status' => 304];
             }
         ]);
         $this->assertInstanceOf('GuzzleHttp\Ring\Future', $response);

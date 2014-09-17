@@ -18,34 +18,38 @@ class CoreTest extends \PHPUnit_Framework_TestCase
     public function testCreatesAggregateThensWithFirstResponse()
     {
         $called = [];
-        $th1 = function (array $response) use (&$called) {
+        $th1 = function (array &$response) use (&$called) {
             $called[] = 'th1';
             $response['a'] = 1;
-            return $response;
         };
-        $th2 = function (array $response) use (&$called) {
+        $th2 = function (array &$response) use (&$called) {
             $called[] = 'th2';
         };
         $request = ['then' => $th1];
         $request = Core::then($request, $th2);
         $this->assertNotSame($th1, $request['then']);
         $this->assertNotSame($th2, $request['then']);
-        $this->assertEquals(['a' => 1], call_user_func($request['then'], []));
+        $res = [];
+        $then = $request['then'];
+        $then($res);
+        $this->assertEquals(['a' => 1], $res);
         $this->assertEquals(['th2', 'th1'], $called);
     }
 
     public function testCreatesAggregateThensWithSecondResponse()
     {
-        $th1 = function (array $response) {};
-        $th2 = function (array $response) {
+        $th1 = function (array &$response) {};
+        $th2 = function (array &$response) {
             $response['a'] = 1;
-            return $response;
         };
         $request = ['then' => $th1];
         $request = Core::then($request, $th2);
         $this->assertNotSame($th1, $request['then']);
         $this->assertNotSame($th2, $request['then']);
-        $this->assertEquals(['a' => 1], call_user_func($request['then'], []));
+        $res = [];
+        $then = $request['then'];
+        $then($res);
+        $this->assertEquals(['a' => 1], $res);
     }
 
     public function testDerefReturnsArray()
@@ -269,7 +273,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
             [true, 'bool(true)'],
             [false, 'bool(false)'],
             [10, 'int(10)'],
-            [1.0, 'double(1)'],
+            [1.0, 'float(1)'],
             [new StrClass(), 'object(GuzzleHttp\Tests\Ring\StrClass)'],
             [['foo'], 'array(1)']
         ];

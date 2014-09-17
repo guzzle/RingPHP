@@ -418,9 +418,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'PUT',
             'uri' => '/',
             'headers' => ['host' => [Server::$host]],
-            'then' => function (array $response) {
+            'then' => function (array &$response) {
                 $response['foo'] = 'bar';
-                return $response;
             }
         ]);
         $this->assertSame('bar', $res['foo']);

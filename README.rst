@@ -104,11 +104,10 @@ client
 
 then
     (callable) A function that is invoked immediately after a request/response
-    transaction has completed. The callable is provided the response array and
-    MAY return a new response value that will be used instead of the provided
-    response array. If no value is returned by the callable, then the passed
-    in response array argument will be the response returned by the adapter.
-    The option is particularly useful for non-blocking adapters, but MUST be
+    transaction has completed. The callable is passed the response array
+    *by reference*. The callable MAY modify the response to modidy the response
+    the is ultimately returned when the Future is dereferenced. The future
+    option is particularly useful for non-blocking adapters, but MUST be
     emulated by blocking adapters as well to provide a consistent
     implementation.
 
@@ -369,7 +368,7 @@ of the request.
     $adapter = new CurlMultiAdapter();
 
     // This function is called when each request completes.
-    $afterComplete = function (array $response) {
+    $afterComplete = function (array &$response) {
         if (isset($response['error'])) {
             echo "Error: " . $response['error']->getMessage() . "\n";
         } else {
@@ -461,13 +460,14 @@ that is ultimately returned to the consumer.
 
     $responseHeaderHandler = function (callable $handler, array $headers) {
         return function (array $request) use ($handler, $headers) {
-            // Add headers to successful responses when they complete
-            $request = Core::then($request, function (array $response) {
+            // Add headers to successful responses when they complete.
+            // Be sure to define the function so that the response is passed
+            // by reference so that modifications to the response will have
+            // an upstream effect.
+            $request = Core::then($request, function (array &$response) {
                 foreach ($headers as $key => $value) {
                     $response['headers'][$key] = $value;
                 }
-                // Be sure to return the modified response so that it is used
-                // as the dereferneced future response value.
                 return $response;
             });
 

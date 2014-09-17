@@ -17,9 +17,9 @@ class Core
      * of the previous then function that first calls the new function followed
      * by the previous previous function.
      *
-     * The provided function accepts the returned response, and can optionally
-     * return a new response which will override the response associated with
-     * the request.
+     * The provided function accepts the returned response *by reference*.
+     * Modifying the passed response argument will modify the response that
+     * is ultimately returned when a future is dereferenced.
      *
      * @param array    $request Request to update
      * @param callable $fn      Function to invoke on completion.
@@ -29,12 +29,10 @@ class Core
     public static function then(array $request, callable $fn)
     {
         if (isset($request['then'])) {
-            $fn = function ($response) use ($request, $fn) {
-                // Call the new function first.
-                $response = $fn($response) ?: $response;
+            $fn = function (&$response) use ($request, $fn) {
+                $fn($response);
                 $then = $request['then'];
-                // Followed by the previous function.
-                return $then($response) ?: $response;
+                $then($response);
             };
         }
 
@@ -333,8 +331,7 @@ class Core
 
         try {
             $then = $request['then'];
-            // The new value becomes the return value if one is present.
-            $atom = $then($atom) ?: $atom;
+            $then($atom);
         } catch (\Exception $e) {
             // The atom get an "error" added to it if an exception is encountered.
             $atom['error'] = $e;
