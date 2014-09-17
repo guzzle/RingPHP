@@ -94,8 +94,10 @@ class CurlFactory
         array $request,
         array $response
     ) {
+        // Retry when nothing is present or when curl failed to rewind.
         if (!isset($response['err_message'])
-            && empty($response['curl']['errno'])
+            && (empty($response['curl']['errno'])
+                || $response['curl']['errno'] == 65)
         ) {
             return self::retryFailedRewind($adapter, $request, $response);
         }
@@ -492,6 +494,20 @@ class CurlFactory
                 . 'without providing an error. The request would have been '
                 . 'retried, but attempting to rewind the request body failed.';
             return self::createErrorResponse($adapter, $request, $response);
+        }
+
+        // Retry no more than 3 times before giving up.
+        if (!isset($request['curl']['retries'])) {
+            $request['curl']['retries'] = 1;
+        } elseif ($request['curl']['retries'] == 2) {
+            $response['err_message'] = 'The cURL request was retried 3 times '
+                . 'and did no succeed. cURL was unable to rewind the body of '
+                . 'the request and subsequent retries resulted in the same '
+                . 'error. Turn on the debug option to see what went wrong. '
+                . 'See https://bugs.php.net/bug.php?id=47204 for more information.';
+            return self::createErrorResponse($adapter, $request, $response);
+        } else {
+            $request['curl']['retries']++;
         }
 
         return $adapter($request);

@@ -15,7 +15,8 @@ namespace GuzzleHttp\Tests\Ring\Client {
 
 use GuzzleHttp\Ring\Client\CurlFactory;
 use GuzzleHttp\Ring\Client\CurlMultiAdapter;
-use GuzzleHttp\Ring\Core;
+    use GuzzleHttp\Ring\Client\MockAdapter;
+    use GuzzleHttp\Ring\Core;
 use GuzzleHttp\Stream\FnStream;
     use GuzzleHttp\Stream\NoSeekStream;
     use GuzzleHttp\Stream\Stream;
@@ -618,6 +619,25 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($callAdapter);
         $this->assertTrue($called);
         $this->assertEquals('200', $res['status']);
+    }
+
+    public function testFailsWhenRetryMoreThanThreeTimes()
+    {
+        $call = 0;
+        $mock = new MockAdapter(function (array $request) use (&$mock, &$call) {
+            $call++;
+            return CurlFactory::createResponse($mock, $request, [], [], null);
+        });
+        $response = $mock([
+            'http_method' => 'GET',
+            'body'        => 'test'
+        ]);
+        $this->assertEquals(3, $call);
+        $this->assertArrayHasKey('error', $response);
+        $this->assertContains(
+            'The cURL request was retried 3 times',
+            $response['error']->getMessage()
+        );
     }
 }
 
