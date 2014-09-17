@@ -562,6 +562,25 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $sent['body']);
     }
 
+    public function testDoesNotAddMultipleContentLengthHeaders()
+    {
+        $this->addDecodeResponse();
+        $adapter = new CurlMultiAdapter();
+        $response = $adapter([
+            'http_method' => 'GET',
+            'headers'     => [
+                'host'           => [Server::$host],
+                'content-length' => 3
+            ],
+            'body' => 'foo'
+        ]);
+        $response->deref();
+        $sent = Server::received()[0];
+        $this->assertEquals(3, Core::header($sent, 'Content-Length'));
+        $this->assertNull(Core::header($sent, 'Transfer-Encoding'));
+        $this->assertEquals('foo', $sent['body']);
+    }
+
     public function testSendsPostWithNoBodyOrDefaultContentType()
     {
         Server::flush();
