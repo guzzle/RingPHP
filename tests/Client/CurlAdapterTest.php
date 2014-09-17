@@ -122,20 +122,19 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         $a = new CurlAdapter();
         $memory = [];
         for ($i = 0; $i < 25; $i++) {
-            $request = [
+            $a([
                 'http_method' => 'GET',
                 'headers'     => ['host' => [Server::$host]],
                 'then'        => function () {},
                 'progress'    => function () {},
                 'client'      => [
                     'save_to' => FnStream::decorate(Stream::factory(), [
-                        'write' => function ($str) use (&$request) {
+                        'write' => function ($str) {
                             return strlen($str);
                         }
                     ])
                 ]
-            ];
-            $a($request);
+            ]);
             $memory[] = memory_get_usage(true);
         }
         $this->assertCount(25, Server::received());
