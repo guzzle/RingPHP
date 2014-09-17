@@ -290,7 +290,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
             'then' => function () { throw new \OutOfBoundsException(); }
         ];
         Core::callThen($request, $atom);
-        $this->assertInstanceOf('OutOfBoundsException', $atom);
+        $this->assertInstanceOf('OutOfBoundsException', $atom['error']);
     }
 }
 

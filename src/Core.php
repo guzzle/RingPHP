@@ -336,8 +336,8 @@ class Core
             // The new value becomes the return value if one is present.
             $atom = $then($atom) ?: $atom;
         } catch (\Exception $e) {
-            // The atom becomes the exception if one is encountered.
-            $atom = $e;
+            // The atom get an "error" added to it if an exception is encountered.
+            $atom['error'] = $e;
         }
     }
 }

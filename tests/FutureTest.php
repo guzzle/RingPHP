@@ -102,17 +102,6 @@ class FutureTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \OutOfBoundsException
-     */
-    public function testThrowsExceptionWhenDereferenced()
-    {
-        $f = new Future(function () {
-            return new \OutOfBoundsException('');
-        });
-        $f->deref();
-    }
-
-    /**
      * @expectedException \RuntimeException
      */
     public function testValidatesDerefFunction()
