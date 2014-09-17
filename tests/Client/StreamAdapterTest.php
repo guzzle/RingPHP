@@ -46,7 +46,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($result['body']);
         $this->assertEquals([], $result['headers']);
         $this->assertInstanceOf(
-            'GuzzleHttp\Ring\HandlerException',
+            'GuzzleHttp\Ring\Exception\RingException',
             $result['error']
         );
     }

@@ -309,7 +309,8 @@ class Core
             default:
                 ob_start();
                 var_dump($input);
-                return rtrim(ob_get_clean());
+                // normalize float vs double
+                return str_replace('double(', 'float(', rtrim(ob_get_clean()));
         }
     }
 

@@ -2,7 +2,7 @@
 namespace GuzzleHttp\Ring\Client;
 
 use GuzzleHttp\Ring\Core;
-use GuzzleHttp\Ring\HandlerException;
+use GuzzleHttp\Ring\Exception\RingException;
 use GuzzleHttp\Stream\InflateStream;
 use GuzzleHttp\Stream\StreamInterface;
 use GuzzleHttp\Stream\Stream;
@@ -117,8 +117,8 @@ class StreamAdapter
      */
     private function createErrorResponse($url, \Exception $e)
     {
-        if (!($e instanceof HandlerException)) {
-            $e = new HandlerException($e->getMessage(), 0, $e);
+        if (!($e instanceof RingException)) {
+            $e = new RingException($e->getMessage(), 0, $e);
         }
 
         return [

@@ -38,7 +38,7 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($response['reason']);
         $this->assertEquals([], $response['headers']);
         $this->assertInstanceOf(
-            'GuzzleHttp\Ring\HandlerException',
+            'GuzzleHttp\Ring\Exception\RingException',
             $response['error']
         );
 

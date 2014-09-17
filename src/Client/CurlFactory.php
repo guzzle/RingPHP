@@ -2,7 +2,7 @@
 namespace GuzzleHttp\Ring\Client;
 
 use GuzzleHttp\Ring\Core;
-use GuzzleHttp\Ring\HandlerException;
+use GuzzleHttp\Ring\Exception\RingException;
 use GuzzleHttp\Stream\LazyOpenStream;
 use GuzzleHttp\Stream\StreamInterface;
 
@@ -113,7 +113,7 @@ class CurlFactory
             'reason'  => null,
             'body'    => null,
             'headers' => [],
-            'error'   => new HandlerException($message)
+            'error'   => new RingException($message)
         ];
     }
 

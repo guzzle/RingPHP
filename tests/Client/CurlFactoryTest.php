@@ -581,7 +581,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     public function testFailsWhenNoResponseAndNoBody()
     {
         $res = CurlFactory::createResponse(function () {}, [], [], [], null);
-        $this->assertInstanceOf('GuzzleHttp\Ring\HandlerException', $res['error']);
+        $this->assertInstanceOf('GuzzleHttp\Ring\Exception\RingException', $res['error']);
         $this->assertContains(
             'No response was received for a request with no body',
             $res['error']->getMessage()
@@ -593,7 +593,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $res = CurlFactory::createResponse(function () {}, [
             'body' => new NoSeekStream(Stream::factory('foo'))
         ], [], [], null);
-        $this->assertInstanceOf('GuzzleHttp\Ring\HandlerException', $res['error']);
+        $this->assertInstanceOf('GuzzleHttp\Ring\Exception\RingException', $res['error']);
         $this->assertContains(
             'rewind the request body failed',
             $res['error']->getMessage()
