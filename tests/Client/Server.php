@@ -1,7 +1,6 @@
 <?php
 namespace GuzzleHttp\Tests\Ring\Client;
 
-use GuzzleHttp\Ring\Client\CurlMultiAdapter;
 use GuzzleHttp\Ring\Client\StreamAdapter;
 use GuzzleHttp\Ring\Core;
 
