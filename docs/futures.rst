@@ -121,3 +121,63 @@ If no cancellation function is provided, then a request cannot be cancelled. If
 a cancel function is provided, then it should accept the future as an argument
 and return true if the future was successfully cancelled or false if it could
 not be cancelled.
+
+Implementing FutureInterface
+----------------------------
+
+``GuzzleHttp\Ring\FutureInterface`` is generic enough that ist is not specific
+to HTTP responses. The FutureInterface has the following methods:
+
+deref
+    Method that dereferences the future and blocks until the result is ready.
+    Attempting to dereference a cancelled future must result in a
+    ``GuzzleHttp\Ring\Exception\CancelledFutureAccessException`` being thrown.
+
+realized
+    Method that returns true if the future has been dereferenced or cancelled.
+
+cancelled
+    Method that returns true iff the future has been cancelled.
+
+cancel
+    A method that cancels the future and returns true or false based on whether
+    or not the future could be cancelled.
+
+Constructing a future, determining if a future has been realized
+(dereferenced), dereferencing a future when accessed, determining if a future
+has been cancelled, and cancelling a future follows such a common pattern that
+a ``GuzzleHttp\Ring\BaseFutureTrait`` trait is provided. This trait implements
+a future constructor which accepts a function used to dereference the future
+and an optional function used to cancel the future. This trait implements
+cancelling the future and handling the various states and the way in which the
+future state effects the return value of the ``cancel`` function.
+
+Let's implement a future that does computation (possibly in another thread),
+and blocks until the computation is complete when dereferencing.
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Core;
+    use GuzzleHttp\Ring\FutureInterface;
+    use GuzzleHttp\Ring\BaseFutureTrait;
+    use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
+
+    class ComputationFuture implements FutureInterface
+    {
+        use BaseFutureTrait;
+
+        /**
+         * This function must be implemented and is used to validate and
+         * process the dereferenced result.
+         */
+        protected function processResult($data)
+        {
+            // Validate the result that was dereferenced.
+            if (!is_string($result)) {
+                throw new \RuntimeException('The dereference function did not '
+                    . 'return a string. Found ' . Core::describeType($result));
+            }
+
+            return $result;
+        }
+    }

@@ -1,8 +1,6 @@
 <?php
 namespace GuzzleHttp\Ring;
 
-use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
-
 /**
  * Future ring response that may or may not have completed.
  *
@@ -20,74 +18,48 @@ use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
  * request cannot be cancelled. If a cancel function is provided, then it
  * should accept the future as an argument and return true if the future was
  * successfully cancelled or false if it could not be cancelled.
- *
- * @property array $data Actual data used by the future. Accessing this
- *                       property will cause the future to block if it has not
- *                       already realized the future.
  */
 class Future implements RingFutureInterface
 {
     use BaseFutureTrait;
 
-    /**
-     * Returns the future response as a regular response array.
-     * {@inheritdoc}
-     */
-    public function deref()
-    {
-        // Return the data if available, or call __get() to dereference.
-        return $this->data;
-    }
-
     public function offsetExists($offset)
     {
-        return isset($this->data[$offset]);
+        return isset($this->result[$offset]);
     }
 
     public function offsetGet($offset)
     {
-        return $this->data[$offset];
+        return $this->result[$offset];
     }
 
     public function offsetSet($offset, $value)
     {
-        $this->data[$offset] = $value;
+        $this->result[$offset] = $value;
     }
 
     public function offsetUnset($offset)
     {
-        unset($this->data[$offset]);
+        unset($this->result[$offset]);
     }
 
     public function count()
     {
-        return count($this->data);
+        return count($this->result);
     }
 
     public function getIterator()
     {
-        return new \ArrayIterator($this->data);
+        return new \ArrayIterator($this->result);
     }
 
-    /** @internal */
-    public function __get($name)
+    protected function processResult($result)
     {
-        if ($name !== 'data') {
-            throw new \RuntimeException("Class has no {$name} property");
-        } elseif ($this->isCancelled) {
-            throw new CancelledFutureAccessException('You are attempting '
-                . 'to access a future that has been cancelled.');
-        }
-
-        $deref = $this->dereffn;
-        $this->dereffn = $this->cancelfn = null;
-        $result = $deref();
-
         if (!is_array($result)) {
             throw new \RuntimeException('The dereference function did not '
                 . 'return an array. Found ' . Core::describeType($result));
         }
 
-        return $this->data = $result;
+        return $result;
     }
 }

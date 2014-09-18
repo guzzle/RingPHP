@@ -15,7 +15,7 @@ requests.
    :maxdepth: 1
 
    spec
-   client_middleware
    futures
+   client_middleware
    client_adapters
    testing
