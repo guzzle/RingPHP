@@ -15,11 +15,11 @@ namespace GuzzleHttp\Tests\Ring\Client {
 
 use GuzzleHttp\Ring\Client\CurlFactory;
 use GuzzleHttp\Ring\Client\CurlMultiAdapter;
-    use GuzzleHttp\Ring\Client\MockAdapter;
-    use GuzzleHttp\Ring\Core;
+use GuzzleHttp\Ring\Client\MockAdapter;
+use GuzzleHttp\Ring\Core;
 use GuzzleHttp\Stream\FnStream;
-    use GuzzleHttp\Stream\NoSeekStream;
-    use GuzzleHttp\Stream\Stream;
+use GuzzleHttp\Stream\NoSeekStream;
+use GuzzleHttp\Stream\Stream;
 
 class CurlFactoryTest extends \PHPUnit_Framework_TestCase
 {
