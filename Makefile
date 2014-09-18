@@ -1,5 +1,11 @@
 all: clean coverage docs
 
+docs:
+	cd docs && make html
+
+view-docs:
+	open docs/_build/html/index.html
+
 start-server: stop-server
 	node tests/Client/server.js &> /dev/null &
 
@@ -23,6 +29,7 @@ view-coverage:
 
 clean:
 	rm -rf build/artifacts/*
+	cd docs && make clean
 
 tag:
 	$(if $(TAG),,$(error TAG is not defined. Pass via "make tag TAG=4.2.1"))
@@ -36,4 +43,4 @@ perf: start-server
 	php tests/perf.php
 	$(MAKE) stop-server
 
-.PHONY: doc
+.PHONY: docs
