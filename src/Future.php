@@ -21,7 +21,7 @@ namespace GuzzleHttp\Ring;
  */
 class Future implements RingFutureInterface
 {
-    use BaseFutureTrait;
+    use MagicFutureTrait;
 
     public function offsetExists($offset)
     {

@@ -146,7 +146,7 @@ cancel
 Constructing a future, determining if a future has been realized
 (dereferenced), dereferencing a future when accessed, determining if a future
 has been cancelled, and cancelling a future follows such a common pattern that
-a ``GuzzleHttp\Ring\BaseFutureTrait`` trait is provided. This trait implements
+a ``GuzzleHttp\Ring\MagicFutureTrait`` trait is provided. This trait implements
 a future constructor which accepts a function used to dereference the future
 and an optional function used to cancel the future. This trait implements
 cancelling the future and handling the various states and the way in which the
@@ -159,12 +159,12 @@ and blocks until the computation is complete when dereferencing.
 
     use GuzzleHttp\Ring\Core;
     use GuzzleHttp\Ring\FutureInterface;
-    use GuzzleHttp\Ring\BaseFutureTrait;
+    use GuzzleHttp\Ring\MagicFutureTrait;
     use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
 
     class ComputationFuture implements FutureInterface
     {
-        use BaseFutureTrait;
+        use MagicFutureTrait;
 
         /**
          * This function must be implemented and is used to validate and
