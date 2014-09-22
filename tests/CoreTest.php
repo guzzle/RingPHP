@@ -296,6 +296,14 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         Core::callThen($request, $atom);
         $this->assertInstanceOf('OutOfBoundsException', $atom['error']);
     }
+
+    public function testDoesSleep()
+    {
+        $t = microtime(true);
+        $expected = $t + (100 / 1000);
+        Core::doSleep(['client' => ['delay' => 100]]);
+        $this->assertGreaterThanOrEqual($expected, microtime(true));
+    }
 }
 
 final class StrClass

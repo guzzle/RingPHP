@@ -180,6 +180,11 @@ client
         automatically decode encoded responses. Set to ``false`` to not decode
         responses. By default, content is *not* decoded automatically.
 
+    delay
+        (int) The number of milliseconds to delay before sending the request.
+        This is often used for delaying before retrying a request. Adapters
+        SHOULD implement this if possible, but it is not a strict requirement.
+
     progress
         (function) Defines a function to invoke when transfer progress is made.
         The function accepts the following arguments:

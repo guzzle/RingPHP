@@ -23,6 +23,7 @@ class StreamAdapter
     public function __invoke(array $request)
     {
         $url = Core::url($request);
+        Core::doSleep($request);
 
         try {
             $stream = $this->createStream($url, $request, $headers);

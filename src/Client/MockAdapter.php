@@ -30,6 +30,7 @@ class MockAdapter
 
     public function __invoke(array $request)
     {
+        Core::doSleep($request);
         $response = is_callable($this->result)
             ? call_user_func($this->result, $request)
             : $this->result;

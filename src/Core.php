@@ -338,4 +338,20 @@ class Core
             $atom['error'] = $e;
         }
     }
+
+    /**
+     * Sleep for the specified amount of time specified in the request's
+     * ['client']['delay'] option if present.
+     *
+     * This function should only be used when a non-blocking sleep is not
+     * possible.
+     *
+     * @param array $request Request to sleep
+     */
+    public static function doSleep(array $request)
+    {
+        if (isset($request['client']['delay'])) {
+            usleep($request['client']['delay'] * 1000);
+        }
+    }
 }

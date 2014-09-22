@@ -168,4 +168,19 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $response->deref();
         $this->assertFalse($response->cancel());
     }
+
+    public function testDelaysInParallel()
+    {
+        Server::flush();
+        Server::enqueue([['status' => 200]]);
+        $a = new CurlMultiAdapter();
+        $expected = microtime(true) + (100 / 1000);
+        $response = $a([
+            'http_method' => 'GET',
+            'headers'     => ['host' => [Server::$host]],
+            'client'      => ['delay' => 100]
+        ]);
+        $response->deref();
+        $this->assertGreaterThanOrEqual($expected, microtime(true));
+    }
 }

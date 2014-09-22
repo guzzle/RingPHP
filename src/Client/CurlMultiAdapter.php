@@ -7,6 +7,9 @@ use GuzzleHttp\Ring\Future;
 /**
  * Returns an asynchronous response using curl_multi_* functions.
  *
+ * This adapter supports future responses and the "delay" request client
+ * option that can be used to delay before sending a request.
+ *
  * When using the CurlMultiAdapter, custom curl options can be specified as an
  * associative array of curl option constants mapping to values in the
  * **curl** key of the "client" key of the request.
@@ -19,6 +22,7 @@ class CurlMultiAdapter
     private $mh;
     private $active;
     private $handles = [];
+    private $delays = [];
     private $maxHandles;
 
     /**
@@ -102,17 +106,25 @@ class CurlMultiAdapter
 
     private function addRequest(array &$entry)
     {
-        $this->handles[(int) $entry['handle']] = $entry;
-        curl_multi_add_handle($this->mh, $entry['handle']);
-        $future = empty($entry['request']['future'])
-            ? false : $entry['request']['future'];
+        $id = (int) $entry['handle'];
+        $this->handles[$id] = $entry;
 
-        // "lazy" futures are only sent once the pool has many requests.
-        if ($future !== 'lazy') {
-            do {
-                $mrc = curl_multi_exec($this->mh, $this->active);
-            } while ($mrc === CURLM_CALL_MULTI_PERFORM);
-            $this->processMessages();
+        // If the request is a delay, then add the reques to the curl multi
+        // pool only after the specified delay.
+        if (isset($entry['request']['client']['delay'])) {
+            $this->delays[$id] = microtime(true) + ($entry['request']['client']['delay'] / 1000);
+        } else {
+            curl_multi_add_handle($this->mh, $entry['handle']);
+            $future = !empty($entry['request']['future'])
+                ? $entry['request']['future']
+                : false;
+            // "lazy" futures are only sent once the pool has many requests.
+            if ($future !== 'lazy') {
+                do {
+                    $mrc = curl_multi_exec($this->mh, $this->active);
+                } while ($mrc === CURLM_CALL_MULTI_PERFORM);
+                $this->processMessages();
+            }
         }
     }
 
@@ -124,7 +136,7 @@ class CurlMultiAdapter
                 $this->handles[$id]['handle']
             );
             curl_close($this->handles[$id]['handle']);
-            unset($this->handles[$id]);
+            unset($this->handles[$id], $this->delays[$id]);
         }
     }
 
@@ -143,7 +155,7 @@ class CurlMultiAdapter
         }
 
         $handle = $this->handles[$id]['handle'];
-        unset($this->handles[$id]);
+        unset($this->delays[$id], $this->handles[$id]);
         curl_multi_remove_handle($this->mh, $handle);
         curl_close($handle);
 
@@ -153,6 +165,7 @@ class CurlMultiAdapter
     private function execute()
     {
         do {
+
             if ($this->active &&
                 curl_multi_select($this->mh, $this->selectTimeout) === -1
             ) {
@@ -160,11 +173,39 @@ class CurlMultiAdapter
                 // See: https://bugs.php.net/bug.php?id=61141
                 usleep(250);
             }
+
+            // Add any delayed futures if needed.
+            if ($this->delays) {
+                $this->addDelays();
+            }
+
             do {
                 $mrc = curl_multi_exec($this->mh, $this->active);
             } while ($mrc === CURLM_CALL_MULTI_PERFORM);
+
             $this->processMessages();
-        } while ($this->handles || $this->active);
+
+            // If there are delays but no transfers, then sleep for a bit.
+            if (!$this->active && $this->delays) {
+                usleep(500);
+            }
+
+        } while ($this->active || $this->handles);
+    }
+
+    private function addDelays()
+    {
+        $currentTime = microtime(true);
+
+        foreach ($this->delays as $id => $delay) {
+            if ($currentTime >= $delay) {
+                unset($this->delays[$id]);
+                curl_multi_add_handle(
+                    $this->mh,
+                    $this->handles[$id]['handle']
+                );
+            }
+        }
     }
 
     private function processMessages()
