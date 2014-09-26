@@ -188,6 +188,27 @@ class Core
     }
 
     /**
+     * Removes a header from a message using a case-insensitive comparison.
+     *
+     * @param array  $message Message that contains 'headers'
+     * @param string $header  Header to remove
+     *
+     * @return array
+     */
+    public static function removeHeader(array $message, $header)
+    {
+        if (isset($message['headers'])) {
+            foreach (array_keys($message['headers']) as $key) {
+                if (!strcasecmp($header, $key)) {
+                    unset($message['headers'][$key]);
+                }
+            }
+        }
+
+        return $message;
+    }
+
+    /**
      * Creates a URL string from a request.
      *
      * If the "url" key is present on the request, it is returned, otherwise

@@ -121,6 +121,22 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $this->assertNull(Core::header(['headers' => []], 'Foo'));
     }
 
+    public function testRemovesHeaders()
+    {
+        $message = [
+            'headers' => [
+                'foo' => ['bar'],
+                'Foo' => ['bam'],
+                'baz' => ['123']
+            ]
+        ];
+
+        $this->assertSame($message, Core::removeHeader($message, 'bam'));
+        $this->assertEquals([
+            'headers' => ['baz' => ['123']]
+        ], Core::removeHeader($message, 'foo'));
+    }
+
     public function testCreatesUrl()
     {
         $req = [

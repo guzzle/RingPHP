@@ -105,31 +105,6 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $responses[4]->cancel();
     }
 
-    public function testHasNoMemoryLeaks()
-    {
-        Server::flush();
-        $response = ['status' => 200];
-        Server::enqueue(array_fill_keys(range(0, 25), $response));
-        $a = new CurlMultiAdapter(['max_handles' => 5]);
-        $memory = [];
-        for ($i = 0; $i < 25; $i++) {
-            $a([
-                'http_method' => 'GET',
-                'headers'     => ['host' => [Server::$host]]
-            ]);
-            $request['then'] = function () use ($i, &$called) {};
-            $memory[] = memory_get_usage(true);
-        }
-        $this->assertCount(25, Server::received());
-        // Take the last 15 entries and ensure they are consistent
-        $last = $memory[9];
-        $entries = array_slice($memory, 10);
-        foreach ($entries as $entry) {
-            $this->assertEquals($last, $entry);
-            $last = $entry;
-        }
-    }
-
     public function testCanCancel()
     {
         Server::flush();

@@ -26,6 +26,8 @@ class StreamAdapter
         Core::doSleep($request);
 
         try {
+            // Does not support the expect header.
+            $request = Core::removeHeader($request, 'Expect');
             $stream = $this->createStream($url, $request, $headers);
             return $this->createResponse($request, $url, $headers, $stream);
         } catch (\Exception $e) {
