@@ -77,6 +77,10 @@ class CurlFactory
 
         if (isset($headers[0])) {
             $startLine = explode(' ', array_shift($headers), 3);
+            // Trim out 100-Continue start-lines
+            if ($startLine[1] == '100') {
+                $startLine = explode(' ', array_shift($headers), 3);
+            }
             $response['headers'] = Core::headersFromLines($headers);
             $response['status'] = isset($startLine[1]) ? (int) $startLine[1] : null;
             $response['reason'] = isset($startLine[2]) ? $startLine[2] : null;

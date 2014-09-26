@@ -42,7 +42,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers' => [
                 'Foo' => ['Bar'],
                 'Baz' => ['bam'],
-                'Content-Length' => 2
+                'Content-Length' => [2]
             ],
             'body' => 'hi'
         ]]);
@@ -657,6 +657,39 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'The cURL request was retried 3 times',
             $response['error']->getMessage()
         );
+    }
+
+    public function testHandles100Continue()
+    {
+        Server::flush();
+        Server::enqueue([
+            [
+                'status' => '200',
+                'reason' => 'OK',
+                'headers' => [
+                    'Test' => ['Hello'],
+                    'Content-Length' => ['4']
+                ],
+                'body' => 'test'
+            ]
+        ]);
+
+        $request = [
+            'http_method' => 'PUT',
+            'headers'     => [
+                'Host'   => [Server::$host],
+                'Expect' => ['100-Continue']
+            ],
+            'body'        => 'test'
+        ];
+
+        $adapter = new CurlMultiAdapter();
+        $response = $adapter($request)->deref();
+        $this->assertEquals(200, $response['status']);
+        $this->assertEquals('OK', $response['reason']);
+        $this->assertEquals(['Hello'], $response['headers']['Test']);
+        $this->assertEquals(['4'], $response['headers']['Content-Length']);
+        $this->assertEquals('test', Core::body($response));
     }
 }
 
