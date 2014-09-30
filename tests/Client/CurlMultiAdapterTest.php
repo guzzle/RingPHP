@@ -158,4 +158,19 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $response->deref();
         $this->assertGreaterThanOrEqual($expected, microtime(true));
     }
+
+    public function testReturnsRealizedWhenReadyButNotDereferenced()
+    {
+        Server::flush();
+        Server::enqueue([['status' => 200]]);
+        $a = new CurlMultiAdapter();
+        $response = $a([
+            'http_method' => 'GET',
+            'headers'     => ['host' => [Server::$host]]
+        ]);
+        $ref = new \ReflectionMethod($a, 'execute');
+        $ref->setAccessible(true);
+        $ref->invoke($a);
+        $this->assertTrue($response->realized());
+    }
 }
