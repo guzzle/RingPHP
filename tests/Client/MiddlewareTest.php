@@ -2,13 +2,13 @@
 namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\Middleware;
-use GuzzleHttp\Ring\Future;
+use GuzzleHttp\Ring\RingFuture;
 
 class MiddlewareTest extends \PHPUnit_Framework_TestCase
 {
     public function testFutureCallsDefaultAdapter()
     {
-        $future = new Future(function () { return []; });
+        $future = new RingFuture(function () { return []; });
         $calledA = false;
         $a = function (array $req) use (&$calledA, $future) {
             $calledA = true;
@@ -25,7 +25,7 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
 
     public function testFutureCallsStreamingAdapter()
     {
-        $future = new Future(function () {});
+        $future = new RingFuture(function () {});
         $calledA = false;
         $a = function (array $req) use (&$calledA) { $calledA = true; };
         $calledB = false;
@@ -67,7 +67,7 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
     public function testSynchronousForcesSynchronousResponses()
     {
         $h = Middleware::wrapSynchronous(function () {
-            return new Future(function () {
+            return new RingFuture(function () {
                 return ['status' => 200];
             });
         });

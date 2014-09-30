@@ -2,7 +2,7 @@
 namespace GuzzleHttp\Ring\Client;
 
 use GuzzleHttp\Ring\Core;
-use GuzzleHttp\Ring\Future;
+use GuzzleHttp\Ring\RingFuture;
 
 /**
  * Returns an asynchronous response using curl_multi_* functions.
@@ -82,7 +82,7 @@ class CurlMultiAdapter
         $this->addRequest($entry);
         $id = (int) $result[0];
 
-        $future = new Future(
+        $future = new RingFuture(
             // Dereference function
             function () use (&$atom) {
                 if (!$atom) {

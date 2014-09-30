@@ -2,7 +2,7 @@
 namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\MockAdapter;
-use GuzzleHttp\Ring\Future;
+use GuzzleHttp\Ring\RingFuture;
 
 class MockAdapterTest extends \PHPUnit_Framework_TestCase
 {
@@ -35,18 +35,18 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testReturnsFutures()
     {
-        $future = new Future(function () {
+        $future = new RingFuture(function () {
             return ['status' => 200];
         });
         $mock = new MockAdapter($future);
         $response = $mock([]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\Future', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
         $this->assertEquals(200, $response['status']);
     }
 
     public function testReturnsFuturesWithThenCall()
     {
-        $future = new Future(function () {
+        $future = new RingFuture(function () {
             return ['status' => 200];
         });
         $mock = new MockAdapter($future);
@@ -56,22 +56,25 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
                 $response = ['status' => 304];
             }
         ]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\Future', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
         $this->assertEquals(304, $response['status']);
     }
 
     public function testReturnsFuturesAndProxiesCancel()
     {
         $c = null;
-        $future = new Future(function () {}, function () use (&$c) {
-            $c = true;
-            return true;
-        });
+        $future = new RingFuture(
+            function () {},
+            function () use (&$c) {
+                $c = true;
+                return true;
+            }
+        );
         $mock = new MockAdapter($future);
         $response = $mock([
             'then' => function (array $response) {}
         ]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\Future', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
         $this->assertTrue($response->cancel());
         $this->assertTrue($c);
     }

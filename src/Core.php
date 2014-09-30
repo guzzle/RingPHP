@@ -249,7 +249,7 @@ class Core
     /**
      * Reads the body of a message into a string.
      *
-     * @param array|RingFutureInterface $message Message containing a "body" key
+     * @param array|ArrayFutureInterface $message Array containing a "body" key
      *
      * @return null|string Returns the body as a string or null if not set.
      * @throws \InvalidArgumentException if a request body is invalid.

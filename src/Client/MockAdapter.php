@@ -2,8 +2,8 @@
 namespace GuzzleHttp\Ring\Client;
 
 use GuzzleHttp\Ring\Core;
-use GuzzleHttp\Ring\Future;
-use GuzzleHttp\Ring\RingFutureInterface;
+use GuzzleHttp\Ring\RingFuture;
+use GuzzleHttp\Ring\ArrayFutureInterface;
 
 /**
  * Ring adapter that returns a canned response or evaluated function result.
@@ -13,7 +13,7 @@ use GuzzleHttp\Ring\RingFutureInterface;
  */
 class MockAdapter
 {
-    /** @var callable|array|RingFutureInterface */
+    /** @var callable|array|ArrayFutureInterface */
     private $result;
 
     /**
@@ -21,7 +21,7 @@ class MockAdapter
      * callable that accepts a request object and returns an array or future
      * to dynamically create a response.
      *
-     * @param array|RingFutureInterface|callable $result Mock return value.
+     * @param array|ArrayFutureInterface|callable $result Mock return value.
      */
     public function __construct($result)
     {
@@ -37,8 +37,8 @@ class MockAdapter
 
         if (isset($request['then'])) {
             // Create a new future that will call "then" when deref'd
-            if ($response instanceof RingFutureInterface) {
-                $response = new Future(function () use ($request, $response) {
+            if ($response instanceof ArrayFutureInterface) {
+                $response = new RingFuture(function () use ($request, $response) {
                     return $this->callThen($request, Core::deref($response));
                 }, function () use ($response) {
                     return $response->cancel();

@@ -1,14 +1,14 @@
 <?php
 namespace GuzzleHttp\Tests\Ring;
 
-use GuzzleHttp\Ring\Future;
+use GuzzleHttp\Ring\RingFuture;
 
-class FutureTest extends \PHPUnit_Framework_TestCase
+class RingFutureTest extends \PHPUnit_Framework_TestCase
 {
     public function testLazilyCallsDeref()
     {
         $c = false;
-        $f = new Future(function () use (&$c) {
+        $f = new RingFuture(function () use (&$c) {
             $c = true;
             return ['status' => 200];
         });
@@ -19,7 +19,7 @@ class FutureTest extends \PHPUnit_Framework_TestCase
 
     public function testActsLikeArray()
     {
-        $f = new Future(function () {
+        $f = new RingFuture(function () {
             return ['status' => 200];
         });
 
@@ -39,14 +39,14 @@ class FutureTest extends \PHPUnit_Framework_TestCase
      */
     public function testThrowsWhenAccessingInvalidProperty()
     {
-        $f = new Future(function () {});
+        $f = new RingFuture(function () {});
         $f->foo;
     }
 
-    public function testCanCancelFuture()
+    public function testCanCancelRingFuture()
     {
         $called = [];
-        $f = new Future(function () use (&$called) {
+        $f = new RingFuture(function () use (&$called) {
             $called[] = 'deref';
             return ['status' => 200];
         }, function () use (&$called) {
@@ -60,10 +60,10 @@ class FutureTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($f->realized());
     }
 
-    public function testCancellingCompletedFutureReturnsFalse()
+    public function testCancellingCompletedRingFutureReturnsFalse()
     {
         $called = [];
-        $f = new Future(function () use (&$called) {
+        $f = new RingFuture(function () use (&$called) {
             $called[] = 'deref';
             return ['status' => 200];
         }, function () use (&$called) {
@@ -81,7 +81,7 @@ class FutureTest extends \PHPUnit_Framework_TestCase
     public function testCancellingWithNoCancelFunctionPreventsDeref()
     {
         $called = [];
-        $f = new Future(function () use (&$called) {
+        $f = new RingFuture(function () use (&$called) {
             $called[] = 'deref';
             return ['status' => 200];
         });
@@ -96,7 +96,7 @@ class FutureTest extends \PHPUnit_Framework_TestCase
      */
     public function testAccessingCancelledResponseRaisesException()
     {
-        $f = new Future(function () {});
+        $f = new RingFuture(function () {});
         $f->cancel();
         $f['status'];
     }
@@ -106,7 +106,7 @@ class FutureTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidatesDerefFunction()
     {
-        $f = new Future(function () {
+        $f = new RingFuture(function () {
             return 'foo!';
         });
         $f->deref();

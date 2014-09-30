@@ -2,7 +2,7 @@
 namespace GuzzleHttp\Tests\Ring;
 
 use GuzzleHttp\Ring\Core;
-use GuzzleHttp\Ring\Future;
+use GuzzleHttp\Ring\RingFuture;
 use GuzzleHttp\Stream\Stream;
 
 class CoreTest extends \PHPUnit_Framework_TestCase
@@ -60,7 +60,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
 
     public function testDerefReturnsArrayWhenFuture()
     {
-        $future = new Future(function () { return ['status' => 200]; });
+        $future = new RingFuture(function () { return ['status' => 200]; });
         $this->assertInternalType('array', Core::deref($future));
     }
 

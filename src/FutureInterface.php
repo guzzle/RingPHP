@@ -3,6 +3,11 @@ namespace GuzzleHttp\Ring;
 
 /**
  * Represents the result of a computation that may not have completed yet.
+ *
+ * When the future is dereferenced using deref(), the result of the computation
+ * is cached and returned for subsequent calls to deref(). If the result of the
+ * computation has not yet completed when deref() is called, the call to
+ * deref() will block until the future has completed.
  */
 interface FutureInterface
 {

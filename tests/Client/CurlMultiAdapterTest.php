@@ -17,7 +17,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
                 $res = $response;
             }
         ]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\Future', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
         $this->assertEquals(200, $response['status']);
         $this->assertSame($res, $response->deref());
         $this->assertArrayHasKey('transfer_stats', $response);
@@ -38,7 +38,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => ['host' => ['localhost:123']]
         ]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\Future', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
         $this->assertNull($response['status']);
         $this->assertNull($response['reason']);
         $this->assertEquals([], $response['headers']);
@@ -64,7 +64,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]]
         ]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\Future', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
         $a->__destruct();
         $this->assertEquals(200, $response['status']);
     }

@@ -19,7 +19,7 @@ namespace GuzzleHttp\Ring;
  * should accept the future as an argument and return true if the future was
  * successfully cancelled or false if it could not be cancelled.
  */
-class Future implements RingFutureInterface
+class RingFuture implements ArrayFutureInterface
 {
     use MagicFutureTrait;
 
