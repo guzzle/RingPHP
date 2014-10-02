@@ -96,37 +96,18 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         $a($request);
     }
 
-    public function testCallsThenOnComplete()
-    {
-        Server::flush();
-        Server::enqueue([['status' => 200, 'reason' => 'OK']]);
-        $res = null;
-        $adapter = new CurlAdapter();
-        $adapter([
-            'http_method' => 'GET',
-            'headers' => ['host' => [Server::$host]],
-            'then' => function (array $response) use (&$res) {
-                $res = $response;
-            }
-        ]);
-        $this->assertInternalType('array', $res);
-        $this->assertEquals(200, $res['status']);
-        $this->assertEquals('OK', $res['reason']);
-    }
-
     public function testHasNoMemoryLeaks()
     {
         Server::flush();
         $response = ['status' => 200];
-        Server::enqueue(array_fill_keys(range(0, 25), $response));
+        Server::enqueue(array_fill_keys(range(0, 100), $response));
         $a = new CurlAdapter();
         $memory = [];
-        for ($i = 0; $i < 25; $i++) {
+
+        for ($i = 0; $i < 100; $i++) {
             $a([
                 'http_method' => 'GET',
                 'headers'     => ['host' => [Server::$host]],
-                'then'        => function () {},
-                'progress'    => function () {},
                 'client'      => [
                     'save_to' => FnStream::decorate(Stream::factory(), [
                         'write' => function ($str) {
@@ -137,10 +118,12 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
             ]);
             $memory[] = memory_get_usage(true);
         }
-        $this->assertCount(25, Server::received());
-        // Take the last 15 entries and ensure they are consistent
+
+        $this->assertCount(100, Server::received());
+        // Take the last 50 entries and ensure they are consistent
         $last = $memory[9];
-        $entries = array_slice($memory, 10);
+        $entries = array_slice($memory, 50);
+
         foreach ($entries as $entry) {
             $this->assertEquals($last, $entry);
             $last = $entry;

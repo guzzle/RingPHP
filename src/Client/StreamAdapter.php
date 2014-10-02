@@ -56,9 +56,8 @@ class StreamAdapter
         }
 
         $response['body'] = $stream;
-        Core::callThen($request, $response);
 
-        return $response;
+        return Core::createResolvedRingResponse($response);
     }
 
     private function checkDecode(array $request, array $response, $stream)

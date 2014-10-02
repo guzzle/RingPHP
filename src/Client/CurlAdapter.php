@@ -70,10 +70,10 @@ class CurlAdapter
         $response['curl']['error'] = curl_error($h);
         $response['curl']['errno'] = curl_errno($h);
         $this->releaseEasyHandle($h);
-        $response = CurlFactory::createResponse($this, $request, $response, $hd, $bd);
-        Core::callThen($request, $response);
 
-        return $response;
+        return Core::createResolvedRingResponse(
+            CurlFactory::createResponse($this, $request, $response, $hd, $bd)
+        );
     }
 
     private function checkoutEasyHandle()

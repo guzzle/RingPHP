@@ -1,8 +1,8 @@
 <?php
 namespace GuzzleHttp\Ring\Client;
 
-use GuzzleHttp\Ring\Core;
 use GuzzleHttp\Ring\RingFuture;
+use React\Promise\Deferred;
 
 /**
  * Returns an asynchronous response using curl_multi_* functions.
@@ -69,34 +69,26 @@ class CurlMultiAdapter
     {
         $factory = $this->factory;
         $result = $factory($request);
-        $atom = null;
-        $realized = false;
         $entry = [
             'request'  => $request,
             'response' => [],
             'handle'   => $result[0],
             'headers'  => &$result[1],
             'body'     => $result[2],
-            'atom'     => &$atom,
-            'realized' => &$realized
+            'deferred' => new Deferred()
         ];
 
         $this->addRequest($entry);
         $id = (int) $result[0];
 
         $future = new RingFuture(
-            // Dereference function
-            function () use (&$atom) {
-                if (!$atom) {
-                    $this->execute();
-                }
-                return $atom;
+            $entry['deferred']->promise(),
+            function () {
+                $this->execute();
             },
-            // Cancel function that removes the handle and does not finish.
             function () use ($id) {
                 return $this->cancel($id);
-            },
-            $realized
+            }
         );
 
         // Transfer outstanding requests if there are too many open handles.
@@ -232,10 +224,9 @@ class CurlMultiAdapter
             }
 
             // Add the atom value to the entry.
-            $entry['atom'] = $this->responseFromEntry($entry);
+            $result = $this->responseFromEntry($entry);
             $this->removeProcessed($id);
-            Core::callThen($entry['request'], $entry['atom']);
-            $entry['realized'] = true;
+            $entry['deferred']->resolve($result);
         }
     }
 

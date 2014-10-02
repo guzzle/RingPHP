@@ -25,41 +25,31 @@ class RingFuture implements ArrayFutureInterface
 
     public function offsetExists($offset)
     {
-        return isset($this->result[$offset]);
+        return isset($this->_value[$offset]);
     }
 
     public function offsetGet($offset)
     {
-        return $this->result[$offset];
+        return $this->_value[$offset];
     }
 
     public function offsetSet($offset, $value)
     {
-        $this->result[$offset] = $value;
+        $this->_value[$offset] = $value;
     }
 
     public function offsetUnset($offset)
     {
-        unset($this->result[$offset]);
+        unset($this->_value[$offset]);
     }
 
     public function count()
     {
-        return count($this->result);
+        return count($this->_value);
     }
 
     public function getIterator()
     {
-        return new \ArrayIterator($this->result);
-    }
-
-    protected function processResult($result)
-    {
-        if (!is_array($result)) {
-            throw new \RuntimeException('The dereference function did not '
-                . 'return an array. Found ' . Core::describeType($result));
-        }
-
-        return $result;
+        return new \ArrayIterator($this->_value);
     }
 }

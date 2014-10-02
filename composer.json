@@ -10,7 +10,8 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "guzzlehttp/streams": "3.0.*@dev"
+        "guzzlehttp/streams": "3.0.*@dev",
+        "react/promise": "~2.0"
     },
     "autoload": {
         "psr-4": {

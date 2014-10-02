@@ -9,39 +9,6 @@ use GuzzleHttp\Stream\StreamInterface;
 class Core
 {
     /**
-     * Adds a "then" function to a request that is invoked when the request
-     * completes.
-     *
-     * If an existing "then" function is present, then a new "then" will be
-     * added to the request. The new "then" function will become an aggregate
-     * of the previous then function that first calls the new function followed
-     * by the previous previous function.
-     *
-     * The provided function accepts the returned response *by reference*.
-     * Modifying the passed response argument will modify the response that
-     * is ultimately returned when a future is dereferenced.
-     *
-     * @param array    $request Request to update
-     * @param callable $fn      Function to invoke on completion.
-     *
-     * @return array Returns a modified request array.
-     */
-    public static function then(array $request, callable $fn)
-    {
-        if (isset($request['then'])) {
-            $fn = function (&$response) use ($request, $fn) {
-                $fn($response);
-                $then = $request['then'];
-                $then($response);
-            };
-        }
-
-        $request['then'] = $fn;
-
-        return $request;
-    }
-
-    /**
      * Returns a function that calls all of the provided functions, in order,
      * passing the arguments provided to the composed function to each function.
      *
@@ -87,7 +54,7 @@ class Core
      *
      * @return array
      */
-    public static function headerLines(array $message, $header)
+    public static function headerLines($message, $header)
     {
         // Slight optimization for exact matches.
         if (isset($message['headers'][$header])) {
@@ -121,7 +88,7 @@ class Core
      *
      * @return string|null Returns the header string if found, or null if not.
      */
-    public static function header(array $message, $header)
+    public static function header($message, $header)
     {
         $match = self::headerLines($message, $header);
         return $match ? implode(', ', $match) : null;
@@ -137,7 +104,7 @@ class Core
      *
      * @return string|null Returns the value as a string if found.
      */
-    public static function firstHeader(array $message, $header)
+    public static function firstHeader($message, $header)
     {
         $match = self::headerLines($message, $header);
 
@@ -161,7 +128,7 @@ class Core
      *
      * @return bool
      */
-    public static function hasHeader(array $message, $header)
+    public static function hasHeader($message, $header)
     {
         return (bool) self::headerLines($message, $header);
     }
@@ -173,7 +140,7 @@ class Core
      *                     format: "Name: Value"
      * @return array
      */
-    public static function headersFromLines(array $lines)
+    public static function headersFromLines($lines)
     {
         $headers = [];
 
@@ -288,7 +255,7 @@ class Core
      *
      * @return bool Returns true on success, false on failure
      */
-    public static function rewindBody(array $message)
+    public static function rewindBody($message)
     {
         if ($message['body'] instanceof StreamInterface) {
             return $message['body']->seek(0);
@@ -336,31 +303,6 @@ class Core
     }
 
     /**
-     * Handles calling the "then" option of a request.
-     *
-     * This function updates the provided "atom" by referenced, accounting for
-     * return values from the "then" function and setting the atom to an
-     * exception if one was encountered.
-     *
-     * @param array $request
-     * @param       $atom
-     */
-    public static function callThen(array $request, &$atom)
-    {
-        if (!isset($request['then'])) {
-            return;
-        }
-
-        try {
-            $then = $request['then'];
-            $then($atom);
-        } catch (\Exception $e) {
-            // The atom get an "error" added to it if an exception is encountered.
-            $atom['error'] = $e;
-        }
-    }
-
-    /**
      * Sleep for the specified amount of time specified in the request's
      * ['client']['delay'] option if present.
      *
@@ -374,5 +316,19 @@ class Core
         if (isset($request['client']['delay'])) {
             usleep($request['client']['delay'] * 1000);
         }
+    }
+
+    /**
+     * Create a future for a deferred value that has already been resolved.
+     *
+     * @param array $response Response to return when deferred.
+     *
+     * @return RingFuture
+     */
+    public static function createResolvedRingResponse(array $response)
+    {
+        $deferred = ValidatedDeferred::deferredArray();
+        $deferred->resolve($response);
+        return new RingFuture($deferred->promise(), function () {});
     }
 }

@@ -2,68 +2,10 @@
 namespace GuzzleHttp\Tests\Ring;
 
 use GuzzleHttp\Ring\Core;
-use GuzzleHttp\Ring\RingFuture;
 use GuzzleHttp\Stream\Stream;
 
 class CoreTest extends \PHPUnit_Framework_TestCase
 {
-    public function testAddsThensWhenNoneExist()
-    {
-        $th = function () {};
-        $request = [];
-        $request = Core::then($request, $th);
-        $this->assertSame($th, $request['then']);
-    }
-
-    public function testCreatesAggregateThensWithFirstResponse()
-    {
-        $called = [];
-        $th1 = function (array &$response) use (&$called) {
-            $called[] = 'th1';
-            $response['a'] = 1;
-        };
-        $th2 = function (array &$response) use (&$called) {
-            $called[] = 'th2';
-        };
-        $request = ['then' => $th1];
-        $request = Core::then($request, $th2);
-        $this->assertNotSame($th1, $request['then']);
-        $this->assertNotSame($th2, $request['then']);
-        $res = [];
-        $then = $request['then'];
-        $then($res);
-        $this->assertEquals(['a' => 1], $res);
-        $this->assertEquals(['th2', 'th1'], $called);
-    }
-
-    public function testCreatesAggregateThensWithSecondResponse()
-    {
-        $th1 = function (array &$response) {};
-        $th2 = function (array &$response) {
-            $response['a'] = 1;
-        };
-        $request = ['then' => $th1];
-        $request = Core::then($request, $th2);
-        $this->assertNotSame($th1, $request['then']);
-        $this->assertNotSame($th2, $request['then']);
-        $res = [];
-        $then = $request['then'];
-        $then($res);
-        $this->assertEquals(['a' => 1], $res);
-    }
-
-    public function testDerefReturnsArray()
-    {
-        $res = ['status' => 200];
-        $this->assertInternalType('array', Core::deref($res));
-    }
-
-    public function testDerefReturnsArrayWhenFuture()
-    {
-        $future = new RingFuture(function () { return ['status' => 200]; });
-        $this->assertInternalType('array', Core::deref($future));
-    }
-
     public function testReturnsNullNoHeadersAreSet()
     {
         $this->assertNull(Core::header([], 'Foo'));
@@ -301,16 +243,6 @@ class CoreTest extends \PHPUnit_Framework_TestCase
     public function testDescribesType($input, $output)
     {
         $this->assertEquals($output, Core::describeType($input));
-    }
-
-    public function testCallsThenWithExceptionTrap()
-    {
-        $atom = null;
-        $request = [
-            'then' => function () { throw new \OutOfBoundsException(); }
-        ];
-        Core::callThen($request, $atom);
-        $this->assertInstanceOf('OutOfBoundsException', $atom['error']);
     }
 
     public function testDoesSleep()

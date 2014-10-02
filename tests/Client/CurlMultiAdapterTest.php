@@ -9,17 +9,12 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
     {
         Server::enqueue([['status' => 200]]);
         $a = new CurlMultiAdapter();
-        $res = null;
         $response = $a([
             'http_method' => 'GET',
-            'headers'     => ['host' => [Server::$host]],
-            'then'        => function (array $response) use (&$res) {
-                $res = $response;
-            }
+            'headers'     => ['host' => [Server::$host]]
         ]);
         $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
         $this->assertEquals(200, $response['status']);
-        $this->assertSame($res, $response->deref());
         $this->assertArrayHasKey('transfer_stats', $response);
         $realUrl = trim($response['transfer_stats']['url'], '/');
         $this->assertEquals(trim(Server::$url, '/'), $realUrl);
@@ -94,10 +89,11 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $a = new CurlMultiAdapter(['max_handles' => 3]);
         $called = $responses = [];
         for ($i = 0; $i < 5; $i++) {
-            $request['then'] = function () use ($i, &$called) {
-                $called[$i] = $i;
-            };
-            $responses[] = $a($request);
+            $responses[] = $a($request)
+                ->then(function ($value) use ($i, &$called) {
+                    $called[$i] = $i;
+                    return $value;
+                });
         }
         $this->assertCount(3, Server::received());
         $this->assertEquals([0, 1, 2], $called);
@@ -127,7 +123,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
 
         foreach ($responses as $response) {
             $this->assertTrue($response->cancelled());
-            $this->assertFalse($response->realized());
+            $this->assertTrue($response->realized());
         }
     }
 

@@ -3,6 +3,7 @@ namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\MockAdapter;
 use GuzzleHttp\Ring\RingFuture;
+use GuzzleHttp\Ring\ValidatedDeferred;
 
 class MockAdapterTest extends \PHPUnit_Framework_TestCase
 {
@@ -17,27 +18,15 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($response['effective_url']);
     }
 
-    public function testCallsThenFromArrayResponses()
-    {
-        $mock = new MockAdapter(['status' => 200]);
-        $response = $mock([
-            'then' => function (array &$response) {
-                $this->assertEquals(200, $response['status']);
-                $response = ['status' => 304];
-            }
-        ]);
-        $this->assertEquals(304, $response['status']);
-        $this->assertEquals([], $response['headers']);
-        $this->assertNull($response['body']);
-        $this->assertNull($response['reason']);
-        $this->assertNull($response['effective_url']);
-    }
-
     public function testReturnsFutures()
     {
-        $future = new RingFuture(function () {
-            return ['status' => 200];
-        });
+        $deferred = ValidatedDeferred::deferredArray();
+        $future = new RingFuture(
+            $deferred->promise(),
+            function () use ($deferred) {
+                $deferred->resolve(['status' => 200]);
+            }
+        );
         $mock = new MockAdapter($future);
         $response = $mock([]);
         $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
@@ -46,16 +35,18 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testReturnsFuturesWithThenCall()
     {
-        $future = new RingFuture(function () {
-            return ['status' => 200];
-        });
-        $mock = new MockAdapter($future);
-        $response = $mock([
-            'then' => function (array &$response) {
-                $this->assertEquals(200, $response['status']);
-                $response = ['status' => 304];
+        $deferred = ValidatedDeferred::deferredArray();
+        $future = new RingFuture(
+            $deferred->promise(),
+            function () use ($deferred) {
+                $deferred->resolve(['status' => 200]);
             }
-        ]);
+        );
+        $mock = new MockAdapter($future);
+        $response = $mock([])->then(function ($value) {
+            $value['status'] = 304;
+            return $value;
+        });
         $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
         $this->assertEquals(304, $response['status']);
     }
@@ -63,7 +54,9 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
     public function testReturnsFuturesAndProxiesCancel()
     {
         $c = null;
+        $deferred = ValidatedDeferred::deferredArray();
         $future = new RingFuture(
+            $deferred->promise(),
             function () {},
             function () use (&$c) {
                 $c = true;
@@ -71,9 +64,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
             }
         );
         $mock = new MockAdapter($future);
-        $response = $mock([
-            'then' => function (array $response) {}
-        ]);
+        $response = $mock([]);
         $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
         $this->assertTrue($response->cancel());
         $this->assertTrue($c);

@@ -2,13 +2,15 @@
 namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\Middleware;
+use GuzzleHttp\Ring\Core;
 use GuzzleHttp\Ring\RingFuture;
+use React\Promise\Deferred;
 
 class MiddlewareTest extends \PHPUnit_Framework_TestCase
 {
     public function testFutureCallsDefaultAdapter()
     {
-        $future = new RingFuture(function () { return []; });
+        $future = Core::createResolvedRingResponse(['status' => 200]);
         $calledA = false;
         $a = function (array $req) use (&$calledA, $future) {
             $calledA = true;
@@ -17,15 +19,14 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
         $calledB = false;
         $b = function (array $req) use (&$calledB) { $calledB = true; };
         $s = Middleware::wrapFuture($a, $b);
-        $result = $s([]);
+        $s([]);
         $this->assertTrue($calledA);
         $this->assertFalse($calledB);
-        $this->assertInternalType('array', $result);
     }
 
     public function testFutureCallsStreamingAdapter()
     {
-        $future = new RingFuture(function () {});
+        $future = Core::createResolvedRingResponse(['status' => 200]);
         $calledA = false;
         $a = function (array $req) use (&$calledA) { $calledA = true; };
         $calledB = false;
@@ -66,20 +67,20 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
 
     public function testSynchronousForcesSynchronousResponses()
     {
-        $h = Middleware::wrapSynchronous(function () {
-            return new RingFuture(function () {
-                return ['status' => 200];
-            });
+        $called = false;
+        $h = Middleware::wrapSynchronous(function () use (&$called) {
+            $deferred = new Deferred();
+            return new RingFuture(
+                $deferred->promise(),
+                function () use ($deferred, &$called) {
+                    $called = true;
+                    $deferred->resolve(['status' => 200]);
+                }
+            );
         });
 
-        $this->assertEquals(['status' => 200], $h([]));
-    }
-
-    public function testSynchronousReturnsRegularResponses()
-    {
-        $h = Middleware::wrapSynchronous(function () {
-            return ['status' => 200];
-        });
-        $this->assertEquals(['status' => 200], $h([]));
+        $response = $h([]);
+        $this->assertTrue($called);
+        $this->assertEquals(['status' => 200], $response->deref());
     }
 }

@@ -410,21 +410,6 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(3, Core::header($req, 'Content-Length'));
     }
 
-    public function testTriggersThenOnComplete()
-    {
-        $this->queueRes();
-        $adapter = new StreamAdapter();
-        $res = $adapter([
-            'http_method' => 'PUT',
-            'uri' => '/',
-            'headers' => ['host' => [Server::$host]],
-            'then' => function (array &$response) {
-                $response['foo'] = 'bar';
-            }
-        ]);
-        $this->assertSame('bar', $res['foo']);
-    }
-
     private function queueRes()
     {
         Server::flush();

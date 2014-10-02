@@ -9,17 +9,12 @@ use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
  *
  * Note: you must implement processResult in order to use this trait.
  *
- * @property mixed $result Actual data used by the future. Accessing this
+ * @property mixed $_value Actual data used by the future. Accessing this
  *     property will cause the future to block if needed.
  */
 trait MagicFutureTrait
 {
     use BaseFutureTrait;
-
-    public function deref()
-    {
-        return $this->result;
-    }
 
     /**
      * This function handles retrieving the dereferenced result when requested.
@@ -32,28 +27,10 @@ trait MagicFutureTrait
      */
     public function __get($name)
     {
-        if ($name !== 'result') {
+        if ($name !== '_value') {
             throw new \RuntimeException("Class has no {$name} property");
-        } elseif ($this->isCancelled) {
-            throw new CancelledFutureAccessException('You are attempting '
-                . 'to access a future that has been cancelled.');
         }
 
-        $deref = $this->dereffn;
-        // Unset these as they are no longer needed.
-        $this->dereffn = $this->cancelfn = null;
-
-        return $this->result = $this->processResult($deref());
+        return $this->_value = $this->deref();
     }
-
-    /**
-     * Function that processes the dereferenced result value. This function
-     * must be implemented when using this trait.
-     *
-     * @param mixed $result Result to process
-     *
-     * @return mixed Returns the result value.
-     * @throws \Exception on error.
-     */
-    abstract protected function processResult($result);
 }

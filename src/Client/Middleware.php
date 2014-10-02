@@ -1,8 +1,6 @@
 <?php
 namespace GuzzleHttp\Ring\Client;
 
-use GuzzleHttp\Ring\Core;
-
 /**
  * Provides basic middleware wrappers.
  *
@@ -29,7 +27,7 @@ class Middleware
     ) {
         return function (array $request) use ($default, $future) {
             return empty($request['client']['future'])
-                ? Core::deref($default($request))
+                ? $default($request)
                 : $future($request);
         };
     }
@@ -68,7 +66,9 @@ class Middleware
     public static function wrapSynchronous(callable $handler)
     {
         return function (array $request) use ($handler) {
-            return Core::deref($handler($request));
+            $promise = $handler($request);
+            $promise->deref();
+            return $promise;
         };
     }
 }

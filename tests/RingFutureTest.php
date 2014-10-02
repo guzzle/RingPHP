@@ -2,26 +2,36 @@
 namespace GuzzleHttp\Tests\Ring;
 
 use GuzzleHttp\Ring\RingFuture;
+use GuzzleHttp\Ring\ValidatedDeferred;
 
 class RingFutureTest extends \PHPUnit_Framework_TestCase
 {
     public function testLazilyCallsDeref()
     {
         $c = false;
-        $f = new RingFuture(function () use (&$c) {
-            $c = true;
-            return ['status' => 200];
-        });
+        $deferred = ValidatedDeferred::deferredArray();
+        $f = new RingFuture(
+            $deferred->promise(),
+            function () use (&$c, $deferred) {
+                $c = true;
+                $deferred->resolve(['status' => 200]);
+            }
+        );
         $this->assertFalse($c);
+        $this->assertFalse($f->realized());
         $this->assertEquals(200, $f['status']);
         $this->assertTrue($c);
     }
 
     public function testActsLikeArray()
     {
-        $f = new RingFuture(function () {
-            return ['status' => 200];
-        });
+        $deferred = ValidatedDeferred::deferredArray();
+        $f = new RingFuture(
+            $deferred->promise(),
+            function () use (&$c, $deferred) {
+                $deferred->resolve(['status' => 200]);
+            }
+        );
 
         $this->assertTrue(isset($f['status']));
         $this->assertEquals(200, $f['status']);
@@ -39,76 +49,24 @@ class RingFutureTest extends \PHPUnit_Framework_TestCase
      */
     public function testThrowsWhenAccessingInvalidProperty()
     {
-        $f = new RingFuture(function () {});
+        $deferred = ValidatedDeferred::deferredArray();
+        $f = new RingFuture($deferred->promise(), function () {});
         $f->foo;
     }
 
-    public function testCanCancelRingFuture()
-    {
-        $called = [];
-        $f = new RingFuture(function () use (&$called) {
-            $called[] = 'deref';
-            return ['status' => 200];
-        }, function () use (&$called) {
-            $called[] = 'cancel';
-            return true;
-        });
-        $this->assertTrue($f->cancel());
-        $this->assertEquals(['cancel'], $called);
-        $this->assertTrue($f->cancelled());
-        $this->assertFalse($f->cancel());
-        $this->assertFalse($f->realized());
-    }
-
-    public function testCancellingCompletedRingFutureReturnsFalse()
-    {
-        $called = [];
-        $f = new RingFuture(function () use (&$called) {
-            $called[] = 'deref';
-            return ['status' => 200];
-        }, function () use (&$called) {
-            $called[] = 'cancel';
-            return true;
-        });
-        $f->deref();
-        $this->assertFalse($f->cancel());
-        $this->assertEquals(['status' => 200], $f->deref());
-        $this->assertEquals(['deref'], $called);
-        $this->assertFalse($f->cancelled());
-        $this->assertTrue($f->realized());
-    }
-
-    public function testCancellingWithNoCancelFunctionPreventsDeref()
-    {
-        $called = [];
-        $f = new RingFuture(function () use (&$called) {
-            $called[] = 'deref';
-            return ['status' => 200];
-        });
-        $this->assertFalse($f->cancel());
-        $this->assertTrue($f->cancelled());
-        $this->assertEquals([], $called);
-        $this->assertFalse($f->realized());
-    }
-
     /**
-     * @expectedException \GuzzleHttp\Ring\Exception\CancelledFutureAccessException
-     */
-    public function testAccessingCancelledResponseRaisesException()
-    {
-        $f = new RingFuture(function () {});
-        $f->cancel();
-        $f['status'];
-    }
-
-    /**
-     * @expectedException \RuntimeException
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Expected array. Got
      */
     public function testValidatesDerefFunction()
     {
-        $f = new RingFuture(function () {
-            return 'foo!';
-        });
+        $deferred = ValidatedDeferred::deferredArray();
+        $f = new RingFuture(
+            $deferred->promise(),
+            function () use (&$c, $deferred) {
+                $deferred->resolve('foo!');
+            }
+        );
         $f->deref();
     }
 }

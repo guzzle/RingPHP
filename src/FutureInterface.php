@@ -1,6 +1,8 @@
 <?php
 namespace GuzzleHttp\Ring;
 
+use React\Promise\PromiseInterface;
+
 /**
  * Represents the result of a computation that may not have completed yet.
  *
@@ -9,7 +11,7 @@ namespace GuzzleHttp\Ring;
  * computation has not yet completed when deref() is called, the call to
  * deref() will block until the future has completed.
  */
-interface FutureInterface
+interface FutureInterface extends PromiseInterface
 {
     /**
      * Returns the result of the future either from cache or by blocking until
