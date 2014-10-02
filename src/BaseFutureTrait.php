@@ -57,10 +57,11 @@ trait BaseFutureTrait
     public function deref()
     {
         if (!$this->isRealized) {
-            $deref = $this->dereffn;
-            $this->dereffn = null;
-            $deref();
-
+            if ($this->dereffn) {
+                $deref = $this->dereffn;
+                $this->dereffn = null;
+                $deref();
+            }
             if (!$this->isRealized) {
                 throw new RingException('Deref did not realize future');
             }
