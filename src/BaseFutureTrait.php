@@ -23,6 +23,7 @@ trait BaseFutureTrait
     private $error;
     private $result;
 
+    private $isShadowed = false;
     private $isRealized = false;
     private $isCancelled = false;
 
@@ -79,7 +80,20 @@ trait BaseFutureTrait
 
     public function cancelled()
     {
+        if (!$this->isRealized) {
+            $this->addShadow();
+        }
+
         return $this->isCancelled;
+    }
+
+    public function realized()
+    {
+        if (!$this->isRealized) {
+            $this->addShadow();
+        }
+
+        return $this->isRealized;
     }
 
     public function cancel()
@@ -100,6 +114,11 @@ trait BaseFutureTrait
      */
     private function addShadow()
     {
+        if ($this->isShadowed) {
+            return;
+        }
+
+        $this->isShadowed = true;
         // Get the result and error when the promise is resolved. Note that
         // calling this function might trigger the resolution immediately.
         $this->promise->then(
