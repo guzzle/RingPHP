@@ -11,7 +11,7 @@ Handlers
 Ring handlers constitute the core logic of a web application. Handlers are
 implemented as PHP callables that process a given request associative array to
 generate and return a response associative array or a
-``GuzzleHttp\Ring\RingFutureInterface``.
+``GuzzleHttp\Ring\FutureArrayInterface``.
 
 Middleware
 ----------
@@ -109,7 +109,7 @@ then
 future
     (bool, string) Specifies whether or not a request SHOULD be a non-blocking,
     future response. By default, responses can be either actual response arrays
-    or ``GuzzleHttp\Ring\RingFutureInterface`` objects which act like
+    or ``GuzzleHttp\Ring\FutureArrayInterface`` objects which act like
     associative arrays but are fulfilled asynchronously or when they are
     accessed.
 

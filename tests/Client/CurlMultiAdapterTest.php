@@ -13,7 +13,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]]
         ]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\FutureArray', $response);
         $this->assertEquals(200, $response['status']);
         $this->assertArrayHasKey('transfer_stats', $response);
         $realUrl = trim($response['transfer_stats']['url'], '/');
@@ -33,7 +33,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => ['host' => ['localhost:123']]
         ]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\FutureArray', $response);
         $this->assertNull($response['status']);
         $this->assertNull($response['reason']);
         $this->assertEquals([], $response['headers']);
@@ -59,7 +59,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]]
         ]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\RingFuture', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\FutureArray', $response);
         $a->__destruct();
         $this->assertEquals(200, $response['status']);
     }
@@ -87,16 +87,10 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         Server::flush();
         Server::enqueue([$response, $response, $response]);
         $a = new CurlMultiAdapter(['max_handles' => 3]);
-        $called = $responses = [];
         for ($i = 0; $i < 5; $i++) {
-            $responses[] = $a($request)
-                ->then(function ($value) use ($i, &$called) {
-                    $called[$i] = $i;
-                    return $value;
-                });
+            $responses[] = $a($request);
         }
         $this->assertCount(3, Server::received());
-        $this->assertEquals([0, 1, 2], $called);
         $responses[3]->cancel();
         $responses[4]->cancel();
     }

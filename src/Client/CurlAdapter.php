@@ -71,7 +71,7 @@ class CurlAdapter
         $response['curl']['errno'] = curl_errno($h);
         $this->releaseEasyHandle($h);
 
-        return Core::createResolvedRingResponse(
+        return Core::futureArray(
             CurlFactory::createResponse($this, $request, $response, $hd, $bd)
         );
     }

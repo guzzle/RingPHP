@@ -252,6 +252,22 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         Core::doSleep(['client' => ['delay' => 100]]);
         $this->assertGreaterThanOrEqual($expected, microtime(true));
     }
+
+    public function testProxiesFuture()
+    {
+        $f = Core::futureArray(['status' => 200]);
+        $res = null;
+        $proxied = Core::proxy($f, function ($value) use (&$res) {
+            $value['foo'] = 'bar';
+            $res = $value;
+            return $value;
+        });
+        $this->assertNotSame($f, $proxied);
+        $this->assertEquals(200, $f->deref()['status']);
+        $this->assertArrayNotHasKey('foo', $f->deref());
+        $this->assertEquals('bar', $proxied->deref()['foo']);
+        $this->assertEquals(200, $proxied->deref()['status']);
+    }
 }
 
 final class StrClass

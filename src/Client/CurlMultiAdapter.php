@@ -1,7 +1,7 @@
 <?php
 namespace GuzzleHttp\Ring\Client;
 
-use GuzzleHttp\Ring\RingFuture;
+use GuzzleHttp\Ring\FutureArray;
 use React\Promise\Deferred;
 
 /**
@@ -81,11 +81,9 @@ class CurlMultiAdapter
         $this->addRequest($entry);
         $id = (int) $result[0];
 
-        $future = new RingFuture(
+        $future = new FutureArray(
             $entry['deferred']->promise(),
-            function () {
-                $this->execute();
-            },
+            [$this, 'execute'],
             function () use ($id) {
                 return $this->cancel($id);
             }
@@ -97,6 +95,40 @@ class CurlMultiAdapter
         }
 
         return $future;
+    }
+
+    /**
+     * Runs until all outstanding connections have completed.
+     */
+    public function execute()
+    {
+        do {
+
+            if ($this->active &&
+                curl_multi_select($this->mh, $this->selectTimeout) === -1
+            ) {
+                // Perform a usleep if a select returns -1.
+                // See: https://bugs.php.net/bug.php?id=61141
+                usleep(250);
+            }
+
+            // Add any delayed futures if needed.
+            if ($this->delays) {
+                $this->addDelays();
+            }
+
+            do {
+                $mrc = curl_multi_exec($this->mh, $this->active);
+            } while ($mrc === CURLM_CALL_MULTI_PERFORM);
+
+            $this->processMessages();
+
+            // If there are delays but no transfers, then sleep for a bit.
+            if (!$this->active && $this->delays) {
+                usleep(500);
+            }
+
+        } while ($this->active || $this->handles);
     }
 
     private function addRequest(array &$entry)
@@ -155,37 +187,6 @@ class CurlMultiAdapter
         curl_close($handle);
 
         return true;
-    }
-
-    private function execute()
-    {
-        do {
-
-            if ($this->active &&
-                curl_multi_select($this->mh, $this->selectTimeout) === -1
-            ) {
-                // Perform a usleep if a select returns -1.
-                // See: https://bugs.php.net/bug.php?id=61141
-                usleep(250);
-            }
-
-            // Add any delayed futures if needed.
-            if ($this->delays) {
-                $this->addDelays();
-            }
-
-            do {
-                $mrc = curl_multi_exec($this->mh, $this->active);
-            } while ($mrc === CURLM_CALL_MULTI_PERFORM);
-
-            $this->processMessages();
-
-            // If there are delays but no transfers, then sleep for a bit.
-            if (!$this->active && $this->delays) {
-                usleep(500);
-            }
-
-        } while ($this->active || $this->handles);
     }
 
     private function addDelays()

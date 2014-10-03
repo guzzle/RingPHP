@@ -2,7 +2,7 @@
 namespace GuzzleHttp\Ring\Client;
 
 use GuzzleHttp\Ring\Core;
-use GuzzleHttp\Ring\RingFuture;
+use GuzzleHttp\Ring\FutureArray;
 use GuzzleHttp\Ring\ArrayFutureInterface;
 
 /**
@@ -18,7 +18,7 @@ class MockAdapter
      * callable that accepts a request object and returns an array or future
      * to dynamically create a response.
      *
-     * @param array|RingFuture|callable $result Mock return value.
+     * @param array|FutureArray|callable $result Mock return value.
      */
     public function __construct($result)
     {
@@ -33,16 +33,16 @@ class MockAdapter
             : $this->result;
 
         if (is_array($response)) {
-            $response = Core::createResolvedRingResponse($response + [
+            $response = Core::futureArray($response + [
                 'status'        => null,
                 'body'          => null,
                 'headers'       => [],
                 'reason'        => null,
                 'effective_url' => null
             ]);
-        } elseif (!$response instanceof RingFuture) {
+        } elseif (!$response instanceof FutureArray) {
             throw new \InvalidArgumentException(
-                'Response must be an array or RingFuture'
+                'Response must be an array or FutureArray'
             );
         }
 

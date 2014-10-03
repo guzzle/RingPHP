@@ -10,9 +10,14 @@ use React\Promise\PromiseInterface;
  */
 trait BaseFutureTrait
 {
-    private $promise;
+    /** @var callable */
     private $dereffn;
+
+    /** @var callable */
     private $cancelfn;
+
+    /** @var PromiseInterface */
+    private $promise;
     private $error;
     private $result;
     private $isRealized = false;
@@ -20,11 +25,11 @@ trait BaseFutureTrait
 
     /**
      * @param PromiseInterface $promise Promise to shadow with the future.
-     * @param callable         $deref   Function that blocks until the deferred
+     * @param callable        $deref    Function that blocks until the deferred
      *                                  computation has been resolved. This
      *                                  function MUST resolve the deferred value
      *                                  associated with the supplied promise.
-     * @param callable         $cancel  If possible and reasonable, provide a
+     * @param callable        $cancel   If possible and reasonable, provide a
      *                                  function that can be used to cancel the
      *                                  future from completing. The cancel
      *                                  function should return true on success
@@ -42,13 +47,13 @@ trait BaseFutureTrait
         // Get the result and error when the promise is resolved.
         $this->promise->then(
             function ($value) {
-                $this->result = $value;
                 $this->isRealized = true;
+                $this->result = $value;
                 $this->dereffn = $this->cancelfn = null;
             },
             function ($error) {
-                $this->error = $error;
                 $this->isRealized = true;
+                $this->error = $error;
                 $this->dereffn = $this->cancelfn = null;
             }
         );
@@ -60,7 +65,12 @@ trait BaseFutureTrait
             if ($this->dereffn) {
                 $deref = $this->dereffn;
                 $this->dereffn = null;
-                $deref();
+                try {
+                    $deref();
+                } catch (\Exception $e) {
+                    $this->error = $e;
+                    $this->isRealized = true;
+                }
             }
             if (!$this->isRealized) {
                 throw new RingException('Deref did not realize future');
@@ -69,9 +79,9 @@ trait BaseFutureTrait
 
         if ($this->error) {
             throw $this->error;
-        } else {
-            return $this->result;
         }
+
+        return $this->result;
     }
 
     public function realized()
@@ -91,16 +101,12 @@ trait BaseFutureTrait
             return false;
         }
 
-        // If this is here, the it hasn't realized. Remove the function and
-        // provide a data variable to prevent it from dereferencing.
-        $this->dereffn = null;
-        $this->isCancelled = $this->isRealized = true;
         $cancelfn = $this->cancelfn;
-        $this->cancelfn = null;
+        $this->dereffn = $this->cancelfn = null;
+        $this->isCancelled = $this->isRealized = true;
         $this->error = new CancelledFutureAccessException();
 
-        // if no cancel function is provided, then we cannot truly cancel.
-        return !$cancelfn ? false : $cancelfn($this);
+        return $cancelfn ? $cancelfn($this) : false;
     }
 
     public function then(
@@ -108,10 +114,6 @@ trait BaseFutureTrait
         callable $onRejected = null,
         callable $onProgress = null
     ) {
-        return new static(
-            $this->promise->then($onFulfilled, $onRejected, $onProgress),
-            $this->dereffn,
-            $this->cancelfn
-        );
+        return $this->promise->then($onFulfilled, $onRejected, $onProgress);
     }
 }

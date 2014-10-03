@@ -21,7 +21,8 @@ class ValidatedDeferred extends Deferred
         if (!$validator) {
             $validator = function ($value) {
                 if (!is_array($value)) {
-                    throw new \InvalidArgumentException('Expected array. Got '
+                    throw new \InvalidArgumentException(
+                        'Expected the resolved value to be an array, but got '
                         . Core::describeType($value));
                 }
             };

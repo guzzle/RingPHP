@@ -3,7 +3,7 @@ Client Adapters
 ===============
 
 Client adapters accept a request array and return a response array or
-``GuzzleHttp\Ring\RingFutureInterface`` object.
+``GuzzleHttp\Ring\FutureArrayInterface`` object.
 
 Built-In Adapters
 -----------------
@@ -131,6 +131,6 @@ Adapters need to follow a few simple rules:
    completes. When calling the ``then`` function pass the response by reference
    to allow the callback to modify the response as needed.
 3. Return a response array or an instance of
-   ``GuzzleHttp\Ring\RingFutureInterface``.
+   ``GuzzleHttp\Ring\FutureArrayInterface``.
 4. Complete any outstanding requests when the adapter is destructed, but do
    not dereference the futures.

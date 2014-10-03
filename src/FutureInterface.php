@@ -6,6 +6,10 @@ use React\Promise\PromiseInterface;
 /**
  * Represents the result of a computation that may not have completed yet.
  *
+ * You can use the future in a blocking manner using the deref() function, or
+ * you can use a promise from the future to receive the result when the future
+ * has been resolved.
+ *
  * When the future is dereferenced using deref(), the result of the computation
  * is cached and returned for subsequent calls to deref(). If the result of the
  * computation has not yet completed when deref() is called, the call to

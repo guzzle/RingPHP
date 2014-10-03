@@ -42,26 +42,6 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
         $f->deref();
     }
 
-    public function testThenReturnsNewFuturevalue()
-    {
-        $called = 0;
-        $deferred = new Deferred();
-        $f = (new FutureValue(
-            $deferred->promise(),
-            function () use ($deferred, &$called) {
-                $deferred->resolve('foo');
-                $called++;
-            }
-        ))->then(function ($value) {
-            return $value . 'bar';
-        });
-
-        $this->assertInstanceOf('GuzzleHttp\Ring\FutureValue', $f);
-        $this->assertEquals('foobar', $f->deref());
-        $this->assertEquals(1, $called);
-        $this->assertTrue($f->realized());
-    }
-
     /**
      * @expectedException \OutOfBoundsException
      */

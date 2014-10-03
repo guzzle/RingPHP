@@ -1,16 +1,16 @@
 <?php
 namespace GuzzleHttp\Tests\Ring;
 
-use GuzzleHttp\Ring\RingFuture;
+use GuzzleHttp\Ring\FutureArray;
 use GuzzleHttp\Ring\ValidatedDeferred;
 
-class RingFutureTest extends \PHPUnit_Framework_TestCase
+class FutureArrayTest extends \PHPUnit_Framework_TestCase
 {
     public function testLazilyCallsDeref()
     {
         $c = false;
         $deferred = ValidatedDeferred::deferredArray();
-        $f = new RingFuture(
+        $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {
                 $c = true;
@@ -26,7 +26,7 @@ class RingFutureTest extends \PHPUnit_Framework_TestCase
     public function testActsLikeArray()
     {
         $deferred = ValidatedDeferred::deferredArray();
-        $f = new RingFuture(
+        $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {
                 $deferred->resolve(['status' => 200]);
@@ -50,18 +50,18 @@ class RingFutureTest extends \PHPUnit_Framework_TestCase
     public function testThrowsWhenAccessingInvalidProperty()
     {
         $deferred = ValidatedDeferred::deferredArray();
-        $f = new RingFuture($deferred->promise(), function () {});
+        $f = new FutureArray($deferred->promise(), function () {});
         $f->foo;
     }
 
     /**
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Expected array. Got
+     * @expectedExceptionMessage Expected the resolved value to be an array
      */
     public function testValidatesDerefFunction()
     {
         $deferred = ValidatedDeferred::deferredArray();
-        $f = new RingFuture(
+        $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {
                 $deferred->resolve('foo!');

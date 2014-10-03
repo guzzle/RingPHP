@@ -27,23 +27,6 @@ class Core
     }
 
     /**
-     * Derefs a response (blocks until it is complete) and returns an array
-     * response.
-     *
-     * If the provided response is a normal response hash, it is returned.
-     *
-     * @param array|FutureInterface $response Response to dereference
-     *
-     * @return array
-     */
-    public static function deref($response)
-    {
-        return $response instanceof FutureInterface
-            ? $response->deref()
-            : $response;
-    }
-
-    /**
      * Gets an array of header line values from a message for a specific header
      *
      * This method searches through the "headers" key of a message for a header
@@ -323,12 +306,36 @@ class Core
      *
      * @param array $response Response to return when deferred.
      *
-     * @return RingFuture
+     * @return FutureArray
      */
-    public static function createResolvedRingResponse(array $response)
+    public static function futureArray(array $response)
     {
         $deferred = ValidatedDeferred::deferredArray();
         $deferred->resolve($response);
-        return new RingFuture($deferred->promise(), function () {});
+        return new FutureArray($deferred->promise());
+    }
+
+    /**
+     * Returns a proxied future that modifies the dereferenced value of another
+     * future using a promise.
+     *
+     * @param FutureInterface $future      Future to wrap with a new future
+     * @param callable        $onFulfilled Invoked when the future fulfilled
+     * @param callable        $onRejected  Invoked when the future rejected
+     * @param callable        $onProgress  Invoked when the future progresses
+     *
+     * @return FutureArray
+     */
+    public static function proxy(
+        FutureInterface $future,
+        callable $onFulfilled = null,
+        callable $onRejected = null,
+        callable $onProgress = null
+    ) {
+        return new FutureArray(
+            $future->then($onFulfilled, $onRejected, $onProgress),
+            [$future, 'deref'],
+            [$future, 'cancel']
+        );
     }
 }

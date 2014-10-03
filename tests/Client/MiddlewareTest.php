@@ -3,14 +3,12 @@ namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\Middleware;
 use GuzzleHttp\Ring\Core;
-use GuzzleHttp\Ring\RingFuture;
-use React\Promise\Deferred;
 
 class MiddlewareTest extends \PHPUnit_Framework_TestCase
 {
     public function testFutureCallsDefaultAdapter()
     {
-        $future = Core::createResolvedRingResponse(['status' => 200]);
+        $future = Core::futureArray(['status' => 200]);
         $calledA = false;
         $a = function (array $req) use (&$calledA, $future) {
             $calledA = true;
@@ -26,7 +24,7 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
 
     public function testFutureCallsStreamingAdapter()
     {
-        $future = Core::createResolvedRingResponse(['status' => 200]);
+        $future = Core::futureArray(['status' => 200]);
         $calledA = false;
         $a = function (array $req) use (&$calledA) { $calledA = true; };
         $calledB = false;
@@ -63,24 +61,5 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
         $s(['client' => ['stream' => true]]);
         $this->assertFalse($calledA);
         $this->assertTrue($calledB);
-    }
-
-    public function testSynchronousForcesSynchronousResponses()
-    {
-        $called = false;
-        $h = Middleware::wrapSynchronous(function () use (&$called) {
-            $deferred = new Deferred();
-            return new RingFuture(
-                $deferred->promise(),
-                function () use ($deferred, &$called) {
-                    $called = true;
-                    $deferred->resolve(['status' => 200]);
-                }
-            );
-        });
-
-        $response = $h([]);
-        $this->assertTrue($called);
-        $this->assertEquals(['status' => 200], $response->deref());
     }
 }

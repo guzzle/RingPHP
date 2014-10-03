@@ -18,7 +18,7 @@ it.
 
 Client adapters may return future responses if they wish. Future responses are
 just like response arrays except that they are actually instances of
-``GuzzleHttp\Ring\RingFutureInterface`` that are not sent over the wire until
+``GuzzleHttp\Ring\FutureArrayInterface`` that are not sent over the wire until
 they are used or the underlying adapter needs to send outstanding requests
 (for example, if the number of queued requests becomes too high or the adapter
 is shutting down).

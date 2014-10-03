@@ -33,12 +33,12 @@ class Middleware
     }
 
     /**
-     * Sends streaming requests to a streaming compatible adapter while sending all
-     * other requests to a default adapter.
+     * Sends streaming requests to a streaming compatible adapter while sendin
+     * all other requests to a default adapter.
      *
-     * This, for example, could be useful for taking advantage of the performance
-     * benefits of curl while still supporting true streaming through the
-     * StreamAdapter.
+     * This, for example, could be useful for taking advantage of the
+     * performance benefits of curl while still supporting true streaming
+     * through the StreamAdapter.
      *
      * @param callable $default   Adapter used for non-streaming responses
      * @param callable $streaming Adapter used for streaming responses
@@ -53,22 +53,6 @@ class Middleware
             return empty($request['client']['stream'])
                 ? $default($request)
                 : $streaming($request);
-        };
-    }
-
-    /**
-     * Forces all responses to be synchronous.
-     *
-     * @param callable $handler Handler to wrap
-     *
-     * @return callable Returns the composed handler.
-     */
-    public static function wrapSynchronous(callable $handler)
-    {
-        return function (array $request) use ($handler) {
-            $promise = $handler($request);
-            $promise->deref();
-            return $promise;
         };
     }
 }
