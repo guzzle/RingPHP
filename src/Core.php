@@ -2,6 +2,7 @@
 namespace GuzzleHttp\Ring;
 
 use GuzzleHttp\Stream\StreamInterface;
+use React\Promise\Deferred;
 
 /**
  * Provides core functionality of Ring adapters and middleware.
@@ -310,7 +311,7 @@ class Core
      */
     public static function futureArray(array $response)
     {
-        $deferred = ValidatedDeferred::forArray();
+        $deferred = new Deferred();
         $deferred->resolve($response);
         return new FutureArray($deferred->promise());
     }
