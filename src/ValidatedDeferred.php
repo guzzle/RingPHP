@@ -15,7 +15,7 @@ class ValidatedDeferred extends Deferred
      *
      * @return static
      */
-    public static function deferredArray()
+    public static function forArray()
     {
         static $validator;
         if (!$validator) {
@@ -29,6 +29,33 @@ class ValidatedDeferred extends Deferred
         }
 
         return new static($validator);
+    }
+
+    /**
+     * Creates a deferred value that must be resolved with a specific class.
+     *
+     * Each validation function is cached for faster reuse.
+     *
+     * @param string $instance Class or interface
+     *
+     * @return static
+     */
+    public static function forInstance($instance)
+    {
+        static $validators = [];
+
+        if (!isset($validators[$instance])) {
+            $validators[$instance] = function ($value) use ($instance) {
+                if (!($value instanceof $instance)) {
+                    throw new \InvalidArgumentException(
+                        'Expected the resolved value to be an instance of '
+                        . $instance . ', but got ' . Core::describeType($value)
+                    );
+                }
+            };
+        }
+
+        return new static($validators[$instance]);
     }
 
     /**

@@ -9,7 +9,7 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
     public function testLazilyCallsDeref()
     {
         $c = false;
-        $deferred = ValidatedDeferred::deferredArray();
+        $deferred = ValidatedDeferred::forArray();
         $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {
@@ -25,7 +25,7 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
 
     public function testActsLikeArray()
     {
-        $deferred = ValidatedDeferred::deferredArray();
+        $deferred = ValidatedDeferred::forArray();
         $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {
@@ -49,7 +49,7 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
      */
     public function testThrowsWhenAccessingInvalidProperty()
     {
-        $deferred = ValidatedDeferred::deferredArray();
+        $deferred = ValidatedDeferred::forArray();
         $f = new FutureArray($deferred->promise(), function () {});
         $f->foo;
     }
@@ -60,7 +60,7 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidatesDerefFunction()
     {
-        $deferred = ValidatedDeferred::deferredArray();
+        $deferred = ValidatedDeferred::forArray();
         $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {

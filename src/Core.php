@@ -310,7 +310,7 @@ class Core
      */
     public static function futureArray(array $response)
     {
-        $deferred = ValidatedDeferred::deferredArray();
+        $deferred = ValidatedDeferred::forArray();
         $deferred->resolve($response);
         return new FutureArray($deferred->promise());
     }

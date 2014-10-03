@@ -20,7 +20,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testReturnsFutures()
     {
-        $deferred = ValidatedDeferred::deferredArray();
+        $deferred = ValidatedDeferred::forArray();
         $future = new FutureArray(
             $deferred->promise(),
             function () use ($deferred) {
@@ -35,7 +35,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testReturnsFuturesWithThenCall()
     {
-        $deferred = ValidatedDeferred::deferredArray();
+        $deferred = ValidatedDeferred::forArray();
         $future = new FutureArray(
             $deferred->promise(),
             function () use ($deferred) {
@@ -58,7 +58,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
     public function testReturnsFuturesAndProxiesCancel()
     {
         $c = null;
-        $deferred = ValidatedDeferred::deferredArray();
+        $deferred = ValidatedDeferred::forArray();
         $future = new FutureArray(
             $deferred->promise(),
             function () {},
