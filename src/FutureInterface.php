@@ -28,15 +28,7 @@ interface FutureInterface extends PromiseInterface
     public function deref();
 
     /**
-     * Returns true if the future has been realized, meaning a result or error
-     * is available.
-     *
-     * @return bool
-     */
-    public function realized();
-
-    /**
-     * Cancels the future.
+     * Cancels the future, if possible.
      *
      * There are three different cases handled by this method:
      *
@@ -56,7 +48,7 @@ interface FutureInterface extends PromiseInterface
     public function cancel();
 
     /**
-     * Returns true if the future has been cancelled.
+     * Returns true if the future is known to have been cancelled.
      *
      * @return bool
      */

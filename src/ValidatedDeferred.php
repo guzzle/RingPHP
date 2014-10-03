@@ -18,6 +18,7 @@ class ValidatedDeferred extends Deferred
     public static function forArray()
     {
         static $validator;
+
         if (!$validator) {
             $validator = function ($value) {
                 if (!is_array($value)) {
@@ -68,7 +69,8 @@ class ValidatedDeferred extends Deferred
 
     public function resolve($value = null)
     {
-        call_user_func($this->onResolve, $value);
+        $fn = $this->onResolve;
+        $fn($value);
         parent::resolve($value);
     }
 }

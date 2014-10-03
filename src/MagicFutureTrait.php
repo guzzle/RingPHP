@@ -7,8 +7,6 @@ use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
  * Implements common future functionality that is triggered when the result
  * property is accessed via a magic __get method.
  *
- * Note: you must implement processResult in order to use this trait.
- *
  * @property mixed $_value Actual data used by the future. Accessing this
  *     property will cause the future to block if needed.
  */
