@@ -24,12 +24,14 @@ trait BaseFutureTrait
     private $isCancelled = false;
 
     /**
-     * @param PromiseInterface $promise Promise to shadow with the future.
-     * @param callable        $deref    Function that blocks until the deferred
+     * @param PromiseInterface $promise Promise to shadow with the future. Only
+     *                                  supply if the promise is not owned
+     *                                  by the deferred value.
+     * @param callable         $deref   Function that blocks until the deferred
      *                                  computation has been resolved. This
      *                                  function MUST resolve the deferred value
      *                                  associated with the supplied promise.
-     * @param callable        $cancel   If possible and reasonable, provide a
+     * @param callable         $cancel  If possible and reasonable, provide a
      *                                  function that can be used to cancel the
      *                                  future from completing. The cancel
      *                                  function should return true on success
@@ -55,6 +57,9 @@ trait BaseFutureTrait
                 $this->isRealized = true;
                 $this->error = $error;
                 $this->dereffn = $this->cancelfn = null;
+                if ($error instanceof CancelledFutureAccessException) {
+                    $this->markCancelled($error);
+                }
             }
         );
     }
@@ -66,12 +71,26 @@ trait BaseFutureTrait
                 $deref = $this->dereffn;
                 $this->dereffn = null;
                 try {
-                    $deref();
+                    $result = $deref();
+                    // The deref function can return a value to resolve.
+                    if ($result !== null) {
+                        if ($result === $this) {
+                            throw new \RuntimeException('Cannot resolve to itself');
+                        }
+                        $this->isRealized = true;
+                        $this->result = $result;
+                    }
+                } catch (CancelledFutureAccessException $e) {
+                    // Throwing this exception adds an error and marks the
+                    // future as cancelled.
+                    $this->markCancelled($e);
                 } catch (\Exception $e) {
+                    // Defer can throw to reject.
                     $this->error = $e;
                     $this->isRealized = true;
                 }
             }
+
             if (!$this->isRealized) {
                 throw new RingException('Deref did not realize future');
             }
@@ -102,11 +121,16 @@ trait BaseFutureTrait
         }
 
         $cancelfn = $this->cancelfn;
-        $this->dereffn = $this->cancelfn = null;
-        $this->isCancelled = $this->isRealized = true;
-        $this->error = new CancelledFutureAccessException();
+        $this->markCancelled(new CancelledFutureAccessException());
 
         return $cancelfn ? $cancelfn($this) : false;
+    }
+
+    private function markCancelled(CancelledFutureAccessException $e)
+    {
+        $this->dereffn = $this->cancelfn = null;
+        $this->isCancelled = $this->isRealized = true;
+        $this->error = $e;
     }
 
     public function then(
