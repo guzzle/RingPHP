@@ -2,7 +2,9 @@
 namespace GuzzleHttp\Tests\Ring;
 
 use GuzzleHttp\Ring\Core;
+use GuzzleHttp\Ring\FutureArray;
 use GuzzleHttp\Stream\Stream;
+use React\Promise\Deferred;
 
 class CoreTest extends \PHPUnit_Framework_TestCase
 {
@@ -267,6 +269,31 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayNotHasKey('foo', $f->deref());
         $this->assertEquals('bar', $proxied->deref()['foo']);
         $this->assertEquals(200, $proxied->deref()['status']);
+    }
+
+    public function testProxiesDeferredFuture()
+    {
+        $d = new Deferred();
+        $f = new FutureArray($d->promise());
+        $f2 = Core::proxy($f);
+        $d->resolve(['foo' => 'bar']);
+        $this->assertEquals('bar', $f['foo']);
+        $this->assertEquals('bar', $f2['foo']);
+    }
+
+    public function testProxiesDeferredFutureFailure()
+    {
+        $d = new Deferred();
+        $f = new FutureArray($d->promise());
+        $f2 = Core::proxy($f);
+        $d->reject(new \Exception('foo'));
+        try {
+            $f2['hello?'];
+            $this->fail('did not throw');
+        } catch (\Exception $e) {
+            $this->assertEquals('foo', $e->getMessage());
+        }
+
     }
 }
 
