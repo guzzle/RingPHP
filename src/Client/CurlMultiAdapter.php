@@ -55,7 +55,7 @@ class CurlMultiAdapter
     public function __destruct()
     {
         // Finish any open connections before terminating the script.
-        while ($this->handles) {
+        if ($this->handles) {
             $this->execute();
         }
 
@@ -78,7 +78,6 @@ class CurlMultiAdapter
             'deferred' => new Deferred()
         ];
 
-        $this->addRequest($entry);
         $id = (int) $result[0];
 
         $future = new FutureArray(
@@ -88,6 +87,8 @@ class CurlMultiAdapter
                 return $this->cancel($id);
             }
         );
+
+        $this->addRequest($entry);
 
         // Transfer outstanding requests if there are too many open handles.
         if (count($this->handles) >= $this->maxHandles) {
@@ -140,13 +141,12 @@ class CurlMultiAdapter
         // pool only after the specified delay.
         if (isset($entry['request']['client']['delay'])) {
             $this->delays[$id] = microtime(true) + ($entry['request']['client']['delay'] / 1000);
+        } elseif (empty($entry['request']['future'])) {
+            curl_multi_add_handle($this->mh, $entry['handle']);
         } else {
             curl_multi_add_handle($this->mh, $entry['handle']);
-            $future = !empty($entry['request']['future'])
-                ? $entry['request']['future']
-                : false;
             // "lazy" futures are only sent once the pool has many requests.
-            if ($future !== 'lazy') {
+            if ($entry['request']['future'] !== 'lazy') {
                 do {
                     $mrc = curl_multi_exec($this->mh, $this->active);
                 } while ($mrc === CURLM_CALL_MULTI_PERFORM);
@@ -214,7 +214,7 @@ class CurlMultiAdapter
                 continue;
             }
 
-            $entry =& $this->handles[$id];
+            $entry = $this->handles[$id];
             $entry['response']['transfer_stats'] = curl_getinfo($done['handle']);
 
             if ($done['result'] !== CURLM_OK) {
@@ -224,21 +224,16 @@ class CurlMultiAdapter
                 }
             }
 
-            // Add the atom value to the entry.
-            $result = $this->responseFromEntry($entry);
+            $result = CurlFactory::createResponse(
+                $this,
+                $entry['request'],
+                $entry['response'],
+                $entry['headers'],
+                $entry['body']
+            );
+
             $this->removeProcessed($id);
             $entry['deferred']->resolve($result);
         }
-    }
-
-    private function responseFromEntry(array $entry)
-    {
-        return CurlFactory::createResponse(
-            $this,
-            $entry['request'],
-            $entry['response'],
-            $entry['headers'],
-            $entry['body']
-        );
     }
 }
