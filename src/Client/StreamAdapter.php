@@ -3,6 +3,7 @@ namespace GuzzleHttp\Ring\Client;
 
 use GuzzleHttp\Ring\Core;
 use GuzzleHttp\Ring\Exception\RingException;
+use GuzzleHttp\Ring\Future\CompletedFutureArray;
 use GuzzleHttp\Stream\InflateStream;
 use GuzzleHttp\Stream\StreamInterface;
 use GuzzleHttp\Stream\Stream;
@@ -57,7 +58,7 @@ class StreamAdapter
 
         $response['body'] = $stream;
 
-        return Core::futureArray($response);
+        return new CompletedFutureArray($response);
     }
 
     private function checkDecode(array $request, array $response, $stream)

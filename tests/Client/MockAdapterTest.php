@@ -2,8 +2,8 @@
 namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\MockAdapter;
-use GuzzleHttp\Ring\FutureArray;
-use GuzzleHttp\Ring\ValidatedDeferred;
+use GuzzleHttp\Ring\Future\FutureArray;
+use GuzzleHttp\Ring\ValidatedDeferredType;
 
 class MockAdapterTest extends \PHPUnit_Framework_TestCase
 {
@@ -20,7 +20,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testReturnsFutures()
     {
-        $deferred = ValidatedDeferred::forArray();
+        $deferred = new ValidatedDeferredType('array');
         $future = new FutureArray(
             $deferred->promise(),
             function () use ($deferred) {
@@ -29,13 +29,13 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
         );
         $mock = new MockAdapter($future);
         $response = $mock([]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\FutureArray', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
         $this->assertEquals(200, $response['status']);
     }
 
     public function testReturnsFuturesWithThenCall()
     {
-        $deferred = ValidatedDeferred::forArray();
+        $deferred = new ValidatedDeferredType('array');
         $future = new FutureArray(
             $deferred->promise(),
             function () use ($deferred) {
@@ -44,7 +44,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
         );
         $mock = new MockAdapter($future);
         $response = $mock([]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\FutureArray', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
         $this->assertEquals(200, $response['status']);
         $req = null;
         $promise = $response->then(function ($value) use (&$req) {
@@ -58,7 +58,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
     public function testReturnsFuturesAndProxiesCancel()
     {
         $c = null;
-        $deferred = ValidatedDeferred::forArray();
+        $deferred = new ValidatedDeferredType('array');
         $future = new FutureArray(
             $deferred->promise(),
             function () {},
@@ -69,7 +69,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
         );
         $mock = new MockAdapter($future);
         $response = $mock([]);
-        $this->assertInstanceOf('GuzzleHttp\Ring\FutureArray', $response);
+        $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
         $this->assertTrue($response->cancel());
         $this->assertTrue($c);
     }

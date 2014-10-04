@@ -1,5 +1,7 @@
 <?php
 namespace GuzzleHttp\Ring\Client;
+
+use GuzzleHttp\Ring\Future\CompletedFutureArray;
 use GuzzleHttp\Ring\Core;
 
 /**
@@ -71,7 +73,7 @@ class CurlAdapter
         $response['curl']['errno'] = curl_errno($h);
         $this->releaseEasyHandle($h);
 
-        return Core::futureArray(
+        return new CompletedFutureArray(
             CurlFactory::createResponse($this, $request, $response, $hd, $bd)
         );
     }

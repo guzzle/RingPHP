@@ -1,12 +1,10 @@
 <?php
-namespace GuzzleHttp\Ring;
+namespace GuzzleHttp\Ring\Future;
 
 /**
- * Represents a future value that when dereferenced returns an array.
- *
- * This future value can be accessed like a regular array.
+ * Represents a future array value that when dereferenced returns an array.
  */
-class FutureArray implements ArrayFutureInterface
+class FutureArray implements FutureArrayInterface
 {
     use MagicFutureTrait;
 

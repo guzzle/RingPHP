@@ -1,9 +1,9 @@
 <?php
-namespace GuzzleHttp\Ring;
+namespace GuzzleHttp\Ring\Future;
 
 /**
  * Represents a future value that responds to deref to retrieve a value, but
- * can also yield promise that are delivered the value when it is available.
+ * can also yield promises that are delivered the value when it is available.
  */
 class FutureValue implements FutureInterface
 {

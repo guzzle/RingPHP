@@ -2,13 +2,13 @@
 namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\Middleware;
-use GuzzleHttp\Ring\Core;
+use GuzzleHttp\Ring\Future\CompletedFutureArray;
 
 class MiddlewareTest extends \PHPUnit_Framework_TestCase
 {
     public function testFutureCallsDefaultAdapter()
     {
-        $future = Core::futureArray(['status' => 200]);
+        $future = new CompletedFutureArray(['status' => 200]);
         $calledA = false;
         $a = function (array $req) use (&$calledA, $future) {
             $calledA = true;
@@ -24,7 +24,7 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
 
     public function testFutureCallsStreamingAdapter()
     {
-        $future = Core::futureArray(['status' => 200]);
+        $future = new CompletedFutureArray(['status' => 200]);
         $calledA = false;
         $a = function (array $req) use (&$calledA) { $calledA = true; };
         $calledB = false;

@@ -1,7 +1,7 @@
 <?php
-namespace GuzzleHttp\Tests\Ring;
+namespace GuzzleHttp\Tests\Ring\Future;
 
-use GuzzleHttp\Ring\FutureValue;
+use GuzzleHttp\Ring\Future\FutureValue;
 use React\Promise\Deferred;
 
 class FutureValueTest extends \PHPUnit_Framework_TestCase

@@ -2,7 +2,8 @@
 namespace GuzzleHttp\Ring;
 
 use GuzzleHttp\Stream\StreamInterface;
-use React\Promise\Deferred;
+use GuzzleHttp\Ring\Future\FutureArrayInterface;
+use GuzzleHttp\Ring\Future\FutureArray;
 
 /**
  * Provides core functionality of Ring adapters and middleware.
@@ -200,7 +201,7 @@ class Core
     /**
      * Reads the body of a message into a string.
      *
-     * @param array|ArrayFutureInterface $message Array containing a "body" key
+     * @param array|FutureArrayInterface $message Array containing a "body" key
      *
      * @return null|string Returns the body as a string or null if not set.
      * @throws \InvalidArgumentException if a request body is invalid.
@@ -303,32 +304,18 @@ class Core
     }
 
     /**
-     * Create a future for a deferred value that has already been resolved.
-     *
-     * @param array $response Response to return when deferred.
-     *
-     * @return FutureArray
-     */
-    public static function futureArray(array $response)
-    {
-        $deferred = new Deferred();
-        $deferred->resolve($response);
-        return new FutureArray($deferred->promise());
-    }
-
-    /**
      * Returns a proxied future that modifies the dereferenced value of another
      * future using a promise.
      *
-     * @param FutureInterface $future      Future to wrap with a new future
-     * @param callable        $onFulfilled Invoked when the future fulfilled
-     * @param callable        $onRejected  Invoked when the future rejected
-     * @param callable        $onProgress  Invoked when the future progresses
+     * @param FutureArrayInterface $future      Future to wrap with a new future
+     * @param callable    $onFulfilled Invoked when the future fulfilled
+     * @param callable    $onRejected  Invoked when the future rejected
+     * @param callable    $onProgress  Invoked when the future progresses
      *
      * @return FutureArray
      */
     public static function proxy(
-        FutureInterface $future,
+        FutureArrayInterface $future,
         callable $onFulfilled = null,
         callable $onRejected = null,
         callable $onProgress = null

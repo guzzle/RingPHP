@@ -1,7 +1,7 @@
 <?php
 namespace GuzzleHttp\Ring\Client;
 
-use GuzzleHttp\Ring\FutureArray;
+use GuzzleHttp\Ring\Future\FutureArray;
 use React\Promise\Deferred;
 
 /**

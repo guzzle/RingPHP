@@ -1,5 +1,5 @@
 <?php
-namespace GuzzleHttp\Ring;
+namespace GuzzleHttp\Ring\Future;
 
 use React\Promise\PromiseInterface;
 

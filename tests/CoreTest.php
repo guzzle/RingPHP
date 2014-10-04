@@ -2,7 +2,8 @@
 namespace GuzzleHttp\Tests\Ring;
 
 use GuzzleHttp\Ring\Core;
-use GuzzleHttp\Ring\FutureArray;
+use GuzzleHttp\Ring\Future\CompletedFutureArray;
+use GuzzleHttp\Ring\Future\FutureArray;
 use GuzzleHttp\Stream\Stream;
 use React\Promise\Deferred;
 
@@ -257,7 +258,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
 
     public function testProxiesFuture()
     {
-        $f = Core::futureArray(['status' => 200]);
+        $f = new CompletedFutureArray(['status' => 200]);
         $res = null;
         $proxied = Core::proxy($f, function ($value) use (&$res) {
             $value['foo'] = 'bar';

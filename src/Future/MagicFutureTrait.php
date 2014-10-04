@@ -1,5 +1,5 @@
 <?php
-namespace GuzzleHttp\Ring;
+namespace GuzzleHttp\Ring\Future;
 
 use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
 

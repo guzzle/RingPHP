@@ -1,15 +1,15 @@
 <?php
-namespace GuzzleHttp\Tests\Ring;
+namespace GuzzleHttp\Tests\Ring\Future;
 
-use GuzzleHttp\Ring\FutureArray;
-use GuzzleHttp\Ring\ValidatedDeferred;
+use GuzzleHttp\Ring\Future\FutureArray;
+use GuzzleHttp\Ring\ValidatedDeferredType;
 
 class FutureArrayTest extends \PHPUnit_Framework_TestCase
 {
     public function testLazilyCallsDeref()
     {
         $c = false;
-        $deferred = ValidatedDeferred::forArray();
+        $deferred = new ValidatedDeferredType('array');
         $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {
@@ -25,7 +25,7 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
 
     public function testActsLikeArray()
     {
-        $deferred = ValidatedDeferred::forArray();
+        $deferred = new ValidatedDeferredType('array');
         $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {
@@ -49,18 +49,18 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
      */
     public function testThrowsWhenAccessingInvalidProperty()
     {
-        $deferred = ValidatedDeferred::forArray();
+        $deferred = new ValidatedDeferredType('array');
         $f = new FutureArray($deferred->promise(), function () {});
         $f->foo;
     }
 
     /**
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Expected the resolved value to be an array
+     * @expectedExceptionMessage Expected the resolved value to be of type "array", but got string(4) "foo!"
      */
     public function testValidatesDerefFunction()
     {
-        $deferred = ValidatedDeferred::forArray();
+        $deferred = new ValidatedDeferredType('array');
         $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {
