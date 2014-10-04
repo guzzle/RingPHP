@@ -59,7 +59,7 @@ trait BaseFutureTrait
                 $this->invokeDeref();
             }
             if (!$this->isRealized) {
-                throw new RingException('Deref did not resolve future');
+                $this->error = new RingException('Deref did not resolve future');
             }
         }
 
@@ -151,9 +151,10 @@ trait BaseFutureTrait
             if ($result !== null) {
                 $this->isRealized = true;
                 if ($result === $this) {
-                    throw new \LogicException('Cannot resolve to itself');
+                    $this->error = new \LogicException('Cannot resolve to itself');
+                } else {
+                    $this->result = $result;
                 }
-                $this->result = $result;
             }
         } catch (CancelledFutureAccessException $e) {
             // Throwing this exception adds an error and marks the
