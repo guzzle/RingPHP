@@ -1,6 +1,7 @@
 <?php
 namespace GuzzleHttp\Ring\Future;
 
+use GuzzleHttp\Ring\Exception\CancelledException;
 use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
 use GuzzleHttp\Ring\Exception\RingException;
 use React\Promise\PromiseInterface;
@@ -131,7 +132,7 @@ trait BaseFutureTrait
                 $this->isRealized = true;
                 $this->error = $error;
                 $this->dereffn = $this->cancelfn = null;
-                if ($error instanceof CancelledFutureAccessException) {
+                if ($error instanceof CancelledException) {
                     $this->markCancelled($error);
                 }
             }
@@ -156,7 +157,7 @@ trait BaseFutureTrait
                     $this->result = $result;
                 }
             }
-        } catch (CancelledFutureAccessException $e) {
+        } catch (CancelledException $e) {
             // Throwing this exception adds an error and marks the
             // future as cancelled.
             $this->markCancelled($e);
@@ -170,9 +171,9 @@ trait BaseFutureTrait
     /**
      * Marks the future as cancelled with the provided exception.
      *
-     * @param CancelledFutureAccessException $e
+     * @param CancelledException $e
      */
-    private function markCancelled(CancelledFutureAccessException $e)
+    private function markCancelled(CancelledException $e)
     {
         $this->dereffn = $this->cancelfn = null;
         $this->isCancelled = $this->isRealized = true;

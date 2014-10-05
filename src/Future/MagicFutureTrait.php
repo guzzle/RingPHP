@@ -1,8 +1,6 @@
 <?php
 namespace GuzzleHttp\Ring\Future;
 
-use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
-
 /**
  * Implements common future functionality that is triggered when the result
  * property is accessed via a magic __get method.
@@ -21,7 +19,7 @@ trait MagicFutureTrait
      *
      * @return mixed Returns the dereferenced data.
      * @throws \RuntimeException
-     * @throws CancelledFutureAccessException
+     * @throws \GuzzleHttp\Ring\Exception\CancelledException
      */
     public function __get($name)
     {
