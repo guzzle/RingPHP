@@ -101,28 +101,4 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($f->cancelled());
         }
     }
-
-    /**
-     * @expectedException \LogicException
-     * @expectedExceptionMessage Cannot resolve to itself
-     */
-    public function testCannotResolveToItself()
-    {
-        $deferred = new Deferred();
-        $f = new FutureValue(
-            $deferred->promise(),
-            function () use(&$called, &$f) { return $f; }
-        );
-        $f->deref();
-    }
-
-    public function testCanResolveByReturningValue()
-    {
-        $deferred = new Deferred();
-        $f = new FutureValue(
-            $deferred->promise(),
-            function () use(&$called) { return 'hi'; }
-        );
-        $this->assertEquals('hi', $f->deref());
-    }
 }

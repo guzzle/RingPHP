@@ -81,7 +81,7 @@ trait BaseFutureTrait
 
     public function cancelled()
     {
-        if ($this->isCancelled === null && !$this->isRealized) {
+        if (!$this->isCancelled && !$this->isRealized) {
             $this->addShadow();
         }
 
@@ -147,16 +147,7 @@ trait BaseFutureTrait
         try {
             $deref = $this->dereffn;
             $this->dereffn = null;
-            $result = $deref();
-            // The deref function can return a value to resolve.
-            if ($result !== null) {
-                $this->isRealized = true;
-                if ($result === $this) {
-                    $this->error = new \LogicException('Cannot resolve to itself');
-                } else {
-                    $this->result = $result;
-                }
-            }
+            $deref();
         } catch (CancelledException $e) {
             // Throwing this exception adds an error and marks the
             // future as cancelled.
