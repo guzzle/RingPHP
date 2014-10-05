@@ -81,7 +81,7 @@ trait BaseFutureTrait
 
     public function cancelled()
     {
-        if (!$this->isRealized) {
+        if ($this->isCancelled === null && !$this->isRealized) {
             $this->addShadow();
         }
 
