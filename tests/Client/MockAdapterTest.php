@@ -73,4 +73,14 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($response->cancel());
         $this->assertTrue($c);
     }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Response must be an array or FutureArrayInterface. Found
+     */
+    public function testEnsuresMockIsValid()
+    {
+        $mock = new MockAdapter('foo');
+        $mock([]);
+    }
 }

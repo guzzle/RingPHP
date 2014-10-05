@@ -163,4 +163,19 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $ref->invoke($a);
         $this->assertTrue($response->realized());
     }
+
+    public function testSendsNonLazyFutures()
+    {
+        $request = [
+            'http_method' => 'GET',
+            'headers'     => ['host' => [Server::$host]],
+            'future'      => true
+        ];
+        Server::flush();
+        Server::enqueue([['status' => 202]]);
+        $a = new CurlMultiAdapter();
+        $response = $a($request);
+        $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
+        $this->assertEquals(202, $response['status']);
+    }
 }

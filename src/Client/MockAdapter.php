@@ -42,7 +42,8 @@ class MockAdapter
             ]);
         } elseif (!$response instanceof FutureArrayInterface) {
             throw new \InvalidArgumentException(
-                'Response must be an array or FutureArray'
+                'Response must be an array or FutureArrayInterface. Found '
+                . Core::describeType($request)
             );
         }
 

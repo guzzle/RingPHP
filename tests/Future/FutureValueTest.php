@@ -1,8 +1,10 @@
 <?php
 namespace GuzzleHttp\Tests\Ring\Future;
 
+use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
 use GuzzleHttp\Ring\Future\FutureValue;
 use React\Promise\Deferred;
+use React\Promise\RejectedPromise;
 
 class FutureValueTest extends \PHPUnit_Framework_TestCase
 {
@@ -58,5 +60,69 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
         $deferred->reject(new \OutOfBoundsException());
         $f->deref();
         $this->assertFalse($called);
+    }
+
+    /**
+     * @expectedException \GuzzleHttp\Ring\Exception\RingException
+     * @expectedExceptionMessage Deref did not resolve future
+     */
+    public function testThrowsWhenDerefDoesNotResolve()
+    {
+        $deferred = new Deferred();
+        $f = new FutureValue(
+            $deferred->promise(),
+            function () use(&$called) {
+                $called = true;
+            }
+        );
+        $f->deref();
+    }
+
+    public function testThrowsAddsShadowToSeeIfCancelled()
+    {
+        $deferred = new RejectedPromise(new CancelledFutureAccessException());
+        $f = new FutureValue($deferred);
+        $this->assertTrue($f->cancelled());
+    }
+
+    public function testThrowingCancelledFutureAccessExceptionCancels()
+    {
+        $deferred = new Deferred();
+        $f = new FutureValue(
+            $deferred->promise(),
+            function () use ($deferred) {
+                throw new CancelledFutureAccessException();
+            }
+        );
+        try {
+            $f->deref();
+            $this->fail('did not throw');
+        } catch (CancelledFutureAccessException $e) {
+            $this->assertTrue($f->cancelled());
+        }
+    }
+
+    /**
+     * @expectedException \LogicException
+     * @expectedExceptionMessage Cannot resolve to itself
+     */
+    public function testCannotResolveToItself()
+    {
+        $deferred = new Deferred();
+        $f = new FutureValue(
+            $deferred->promise(),
+            function () use(&$called, &$f) { return $f; }
+        );
+        $f->deref();
+    }
+
+    public function testCanResolveByReturningValue()
+    {
+        $deferred = new Deferred();
+        $f = new FutureValue(
+            $deferred->promise(),
+            function () use(&$called) { return 'hi'; }
+        );
+        $this->assertEquals('hi', $f->deref());
     }
 }
