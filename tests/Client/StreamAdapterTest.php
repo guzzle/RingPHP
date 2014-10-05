@@ -293,12 +293,13 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $opts['ssl']['passphrase']);
     }
 
-    public function testDebugAttributeWritesStreamInfoToTempBufferByDefault()
+    public function testDebugAttributeWritesToStream()
     {
         $this->queueRes();
-        ob_start();
-        $this->getSendResult(['debug' => true]);
-        $contents = ob_get_clean();
+        $f = fopen('php://temp', 'w+');
+        $this->getSendResult(['debug' => $f]);
+        fseek($f, 0);
+        $contents = stream_get_contents($f);
         $this->assertContains('<GET http://127.0.0.1:8125/> [CONNECT]', $contents);
         $this->assertContains('<GET http://127.0.0.1:8125/> [FILE_SIZE_IS]', $contents);
         $this->assertContains('<GET http://127.0.0.1:8125/> [PROGRESS]', $contents);

@@ -460,9 +460,7 @@ class CurlFactory
             case 'debug':
 
                 if ($value) {
-                    $options[CURLOPT_STDERR] = is_resource($value)
-                        ? $value
-                        : STDOUT;
+                    $options[CURLOPT_STDERR] = Core::getDebugResource($value);
                     $options[CURLOPT_VERBOSE] = true;
                 }
                 break;

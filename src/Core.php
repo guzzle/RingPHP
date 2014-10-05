@@ -326,4 +326,22 @@ class Core
             [$future, 'cancel']
         );
     }
+
+    /**
+     * Returns a debug stream based on the provided variable.
+     *
+     * @param mixed $value Optional value
+     *
+     * @return resource
+     */
+    public static function getDebugResource($value = null)
+    {
+        if (is_resource($value)) {
+            return $value;
+        } elseif (defined('STDOUT')) {
+            return STDOUT;
+        } else {
+            return fopen('php://output', 'w');
+        }
+    }
 }

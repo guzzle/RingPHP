@@ -323,10 +323,7 @@ class StreamAdapter
         static $args = ['severity', 'message', 'message_code',
             'bytes_transferred', 'bytes_max'];
 
-        if (!is_resource($value)) {
-            $value = fopen('php://output', 'w');
-        }
-
+        $value = Core::getDebugResource($value);
         $ident = $request['http_method'] . ' ' . Core::url($request);
         $fn = function () use ($ident, $value, $map, $args) {
             $passed = func_get_args();
