@@ -3,7 +3,7 @@ namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\MockAdapter;
 use GuzzleHttp\Ring\Future\FutureArray;
-use GuzzleHttp\Ring\ValidatedDeferredType;
+use React\Promise\Deferred;
 
 class MockAdapterTest extends \PHPUnit_Framework_TestCase
 {
@@ -20,7 +20,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testReturnsFutures()
     {
-        $deferred = new ValidatedDeferredType('array');
+        $deferred = new Deferred();
         $future = new FutureArray(
             $deferred->promise(),
             function () use ($deferred) {
@@ -35,7 +35,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testReturnsFuturesWithThenCall()
     {
-        $deferred = new ValidatedDeferredType('array');
+        $deferred = new Deferred();
         $future = new FutureArray(
             $deferred->promise(),
             function () use ($deferred) {
@@ -58,7 +58,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
     public function testReturnsFuturesAndProxiesCancel()
     {
         $c = null;
-        $deferred = new ValidatedDeferredType('array');
+        $deferred = new Deferred();
         $future = new FutureArray(
             $deferred->promise(),
             function () {},

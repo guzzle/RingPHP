@@ -2,14 +2,14 @@
 namespace GuzzleHttp\Tests\Ring\Future;
 
 use GuzzleHttp\Ring\Future\FutureArray;
-use GuzzleHttp\Ring\ValidatedDeferredType;
+use React\Promise\Deferred;
 
 class FutureArrayTest extends \PHPUnit_Framework_TestCase
 {
     public function testLazilyCallsDeref()
     {
         $c = false;
-        $deferred = new ValidatedDeferredType('array');
+        $deferred = new Deferred();
         $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {
@@ -25,7 +25,7 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
 
     public function testActsLikeArray()
     {
-        $deferred = new ValidatedDeferredType('array');
+        $deferred = new Deferred();
         $f = new FutureArray(
             $deferred->promise(),
             function () use (&$c, $deferred) {
@@ -49,24 +49,8 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
      */
     public function testThrowsWhenAccessingInvalidProperty()
     {
-        $deferred = new ValidatedDeferredType('array');
+        $deferred = new Deferred();
         $f = new FutureArray($deferred->promise(), function () {});
         $f->foo;
-    }
-
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Expected the resolved value to be of type "array", but got string(4) "foo!"
-     */
-    public function testValidatesDerefFunction()
-    {
-        $deferred = new ValidatedDeferredType('array');
-        $f = new FutureArray(
-            $deferred->promise(),
-            function () use (&$c, $deferred) {
-                $deferred->resolve('foo!');
-            }
-        );
-        $f->deref();
     }
 }
