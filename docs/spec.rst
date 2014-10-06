@@ -10,8 +10,7 @@ Handlers
 
 Ring handlers constitute the core logic of a web application. Handlers are
 implemented as PHP callables that process a given request associative array to
-generate and return a response associative array or a
-``GuzzleHttp\Ring\FutureArrayInterface``.
+generate and return a ``GuzzleHttp\Ring\Future\FutureArrayInterface``.
 
 Middleware
 ----------
@@ -48,8 +47,8 @@ request array, and then invoke their handler with this request array as an
 argument. Once the handler returns a response array, the adapter uses it to
 construct and send an HTTP response to the client.
 
-Request Array
--------------
+Request
+-------
 
 A request array is a PHP associative array that contains the configuration
 settings need to send a request.
@@ -99,42 +98,34 @@ body
     from fopen, an ``Iterator`` that yields chunks of data, an object that
     implemented ``__toString``, or a ``GuzzleHttp\Stream\StreamInterface``.
 
-then
-    (callable) A function that is invoked immediately after a response or error
-    has been received. The callable is passed the response array
-    *by reference*. The callable MAY modify the passed response to modify the
-    response that is ultimately returned by the adapter (whether it's a
-    synchronous response or a future response).
-
 future
-    (bool, string) Specifies whether or not a request SHOULD be a non-blocking,
-    future response. By default, responses can be either actual response arrays
-    or ``GuzzleHttp\Ring\FutureArrayInterface`` objects which act like
-    associative arrays but are fulfilled asynchronously or when they are
-    accessed.
+    (bool, string) Controls the asynchronous behavior of a response.
 
-    Set to ``true`` to *request* that a future response be provided. Keep in
-    mind that you might not necessarily get an actual future response if the
-    adapter you are using does not support them. Omit the ``future`` option or
-    set to it ``false`` to request that a synchronous response be provided.
+    Set to ``true`` or omit the ``future`` option to *request* that a request
+    will be completed asynchronously. Keep in mind that your request might not
+    necessarily be completed asynchronously based on the adapter you are using.
+    Set the ``future`` option to ``false`` to request that a synchronous
+    response be provided.
 
     You can provide a string value to specify fine-tuned future behaviors that
     may be specific to the underlying adapters you are using. There are,
-    however, some common future options that adapter should implement if
+    however, some common future options that adapters should implement if
     possible.
 
-    - lazy: Requests that the adapter does not open and send the request
-      immediately, but rather only opens and sends the request once the
-      future is dereferenced. This option is often useful for sending a large
-      number of requests concurrently to allow adapters to take better
-      advantage of non-blocking transfers.
+    lazy
+        Requests that the adapter does not open and send the request
+        immediately, but rather only opens and sends the request once the
+        future is dereferenced. This option is often useful for sending a large
+        number of requests concurrently to allow adapters to take better
+        advantage of non-blocking transfers by first building up a pool of
+        requests.
 
     If an adapter does not implement or understand a provided string value,
     then the request MUST be treated as if the user provided ``true`` rather
     than the string value.
 
     Future responses created by asynchronous adapters MUST attempt to complete
-    any outstanding future responses when a process completes. Asynchronous
+    any outstanding future responses when they are destructed. Asynchronous
     adapters MAY choose to automatically complete responses when the number
     of outstanding requests reaches an adapter-specific threshold.
 
@@ -265,11 +256,12 @@ remote_addr
     (string) The IP address of the client or the last proxy that sent the
     request. Required when using a Ring server.
 
-Response Array
---------------
+Response
+--------
 
-A response array is an associative array of data that is returned by a handler.
-A response array contains the following key value pairs:
+A response is an array-like object that implements
+``GuzzleHttp\Ring\Future\FutureArrayInterface``. Responses contain the
+following key value pairs:
 
 body
     (string, fopen resource, ``Iterator``, ``GuzzleHttp\Stream\StreamInterface``)
