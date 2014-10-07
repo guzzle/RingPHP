@@ -27,6 +27,6 @@ trait MagicFutureTrait
             throw new \RuntimeException("Class has no {$name} property");
         }
 
-        return $this->_value = $this->deref();
+        return $this->_value = $this->wait();
     }
 }

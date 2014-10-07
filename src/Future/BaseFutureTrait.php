@@ -12,7 +12,7 @@ use React\Promise\PromiseInterface;
 trait BaseFutureTrait
 {
     /** @var callable */
-    private $dereffn;
+    private $waitfn;
 
     /** @var callable */
     private $cancelfn;
@@ -24,15 +24,13 @@ trait BaseFutureTrait
     private $error;
     private $result;
 
-    private $isShadowed = false;
     private $isRealized = false;
-    private $isCancelled = false;
 
     /**
      * @param PromiseInterface $promise Promise to shadow with the future. Only
      *                                  supply if the promise is not owned
      *                                  by the deferred value.
-     * @param callable         $deref   Function that blocks until the deferred
+     * @param callable         $wait    Function that blocks until the deferred
      *                                  computation has been resolved. This
      *                                  function MUST resolve the deferred value
      *                                  associated with the supplied promise.
@@ -44,23 +42,23 @@ trait BaseFutureTrait
      */
     public function __construct(
         PromiseInterface $promise,
-        callable $deref = null,
+        callable $wait = null,
         callable $cancel = null
     ) {
         $this->promise = $promise;
-        $this->dereffn = $deref;
+        $this->waitfn = $wait;
         $this->cancelfn = $cancel;
     }
 
-    public function deref()
+    public function wait()
     {
         if (!$this->isRealized) {
             $this->addShadow();
-            if (!$this->isRealized && $this->dereffn) {
-                $this->invokeDeref();
+            if (!$this->isRealized && $this->waitfn) {
+                $this->invokeWait();
             }
             if (!$this->isRealized) {
-                $this->error = new RingException('Deref did not resolve future');
+                $this->error = new RingException('Waiting did not resolve future');
             }
         }
 
@@ -77,24 +75,6 @@ trait BaseFutureTrait
         callable $onProgress = null
     ) {
         return $this->promise->then($onFulfilled, $onRejected, $onProgress);
-    }
-
-    public function cancelled()
-    {
-        if (!$this->isCancelled && !$this->isRealized) {
-            $this->addShadow();
-        }
-
-        return $this->isCancelled;
-    }
-
-    public function realized()
-    {
-        if (!$this->isRealized) {
-            $this->addShadow();
-        }
-
-        return $this->isRealized;
     }
 
     public function cancel()
@@ -115,23 +95,18 @@ trait BaseFutureTrait
      */
     private function addShadow()
     {
-        if ($this->isShadowed) {
-            return;
-        }
-
-        $this->isShadowed = true;
         // Get the result and error when the promise is resolved. Note that
         // calling this function might trigger the resolution immediately.
         $this->promise->then(
             function ($value) {
                 $this->isRealized = true;
                 $this->result = $value;
-                $this->dereffn = $this->cancelfn = null;
+                $this->waitfn = $this->cancelfn = null;
             },
             function ($error) {
                 $this->isRealized = true;
                 $this->error = $error;
-                $this->dereffn = $this->cancelfn = null;
+                $this->waitfn = $this->cancelfn = null;
                 if ($error instanceof CancelledException) {
                     $this->markCancelled($error);
                 }
@@ -139,15 +114,12 @@ trait BaseFutureTrait
         );
     }
 
-    /**
-     * Invoked the dereference function and handles the various outcomes.
-     */
-    private function invokeDeref()
+    private function invokeWait()
     {
         try {
-            $deref = $this->dereffn;
-            $this->dereffn = null;
-            $deref();
+            $wait = $this->waitfn;
+            $this->waitfn = null;
+            $wait();
         } catch (CancelledException $e) {
             // Throwing this exception adds an error and marks the
             // future as cancelled.
@@ -159,15 +131,10 @@ trait BaseFutureTrait
         }
     }
 
-    /**
-     * Marks the future as cancelled with the provided exception.
-     *
-     * @param CancelledException $e
-     */
     private function markCancelled(CancelledException $e)
     {
-        $this->dereffn = $this->cancelfn = null;
-        $this->isCancelled = $this->isRealized = true;
+        $this->waitfn = $this->cancelfn = null;
+        $this->isRealized = true;
         $this->error = $e;
     }
 }

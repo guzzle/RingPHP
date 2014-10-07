@@ -4,7 +4,6 @@ namespace GuzzleHttp\Tests\Ring\Future;
 use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
 use GuzzleHttp\Ring\Future\FutureValue;
 use React\Promise\Deferred;
-use React\Promise\RejectedPromise;
 
 class FutureValueTest extends \PHPUnit_Framework_TestCase
 {
@@ -21,13 +20,12 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
             }
         );
 
-        $this->assertEquals('foo', $f->deref());
+        $this->assertEquals('foo', $f->wait());
         $this->assertEquals(1, $called);
-        $this->assertEquals('foo', $f->deref());
+        $this->assertEquals('foo', $f->wait());
         $this->assertEquals(1, $called);
-        $this->assertFalse($f->cancelled());
         $this->assertFalse($f->cancel());
-        $this->assertTrue($f->realized());
+        $this->assertTrue($this->readAttribute($f, 'isRealized'));
     }
 
     /**
@@ -41,7 +39,7 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
             function () { return true; }
         );
         $this->assertTrue($f->cancel());
-        $f->deref();
+        $f->wait();
     }
 
     /**
@@ -58,13 +56,13 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
             }
         );
         $deferred->reject(new \OutOfBoundsException());
-        $f->deref();
+        $f->wait();
         $this->assertFalse($called);
     }
 
     /**
      * @expectedException \GuzzleHttp\Ring\Exception\RingException
-     * @expectedExceptionMessage Deref did not resolve future
+     * @expectedExceptionMessage Waiting did not resolve future
      */
     public function testThrowsWhenDerefDoesNotResolve()
     {
@@ -75,14 +73,7 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
                 $called = true;
             }
         );
-        $f->deref();
-    }
-
-    public function testThrowsAddsShadowToSeeIfCancelled()
-    {
-        $deferred = new RejectedPromise(new CancelledFutureAccessException());
-        $f = new FutureValue($deferred);
-        $this->assertTrue($f->cancelled());
+        $f->wait();
     }
 
     public function testThrowingCancelledFutureAccessExceptionCancels()
@@ -95,11 +86,9 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
             }
         );
         try {
-            $f->deref();
+            $f->wait();
             $this->fail('did not throw');
-        } catch (CancelledFutureAccessException $e) {
-            $this->assertTrue($f->cancelled());
-        }
+        } catch (CancelledFutureAccessException $e) {}
     }
 
     /**
@@ -115,6 +104,6 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
                 throw new \Exception('foo');
             }
         );
-        $f->deref();
+        $f->wait();
     }
 }

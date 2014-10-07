@@ -266,10 +266,10 @@ class CoreTest extends \PHPUnit_Framework_TestCase
             return $value;
         });
         $this->assertNotSame($f, $proxied);
-        $this->assertEquals(200, $f->deref()['status']);
-        $this->assertArrayNotHasKey('foo', $f->deref());
-        $this->assertEquals('bar', $proxied->deref()['foo']);
-        $this->assertEquals(200, $proxied->deref()['status']);
+        $this->assertEquals(200, $f->wait()['status']);
+        $this->assertArrayNotHasKey('foo', $f->wait());
+        $this->assertEquals('bar', $proxied->wait()['foo']);
+        $this->assertEquals(200, $proxied->wait()['status']);
     }
 
     public function testProxiesDeferredFuture()

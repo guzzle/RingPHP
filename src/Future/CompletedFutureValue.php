@@ -1,7 +1,6 @@
 <?php
 namespace GuzzleHttp\Ring\Future;
 
-use GuzzleHttp\Ring\Exception\CancelledException;
 use React\Promise\FulfilledPromise;
 use React\Promise\RejectedPromise;
 
@@ -25,7 +24,7 @@ class CompletedFutureValue implements FutureInterface
         $this->error = $e;
     }
 
-    public function deref()
+    public function wait()
     {
         if ($this->error) {
             throw $this->error;
@@ -34,19 +33,9 @@ class CompletedFutureValue implements FutureInterface
         return $this->result;
     }
 
-    public function realized()
-    {
-        return true;
-    }
-
     public function cancel()
     {
         return false;
-    }
-
-    public function cancelled()
-    {
-        return $this->error instanceof CancelledException;
     }
 
     public function then(

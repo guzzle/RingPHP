@@ -9,10 +9,8 @@ class CompletedFutureValueTest extends \PHPUnit_Framework_TestCase
     public function testReturnsValue()
     {
         $f = new CompletedFutureValue('hi');
-        $this->assertTrue($f->realized());
-        $this->assertEquals('hi', $f->deref());
+        $this->assertEquals('hi', $f->wait());
         $this->assertFalse($f->cancel());
-        $this->assertFalse($f->cancelled());
 
         $a = null;
         $f->then(function ($v) use (&$a) {
@@ -26,10 +24,8 @@ class CompletedFutureValueTest extends \PHPUnit_Framework_TestCase
         $ex = new \Exception('foo');
         $f = new CompletedFutureValue(null, $ex);
         $this->assertFalse($f->cancel());
-        $this->assertFalse($f->cancelled());
-        $this->assertTrue($f->realized());
         try {
-            $f->deref();
+            $f->wait();
             $this->fail('did not throw');
         } catch (\Exception $e) {
             $this->assertSame($e, $ex);
@@ -40,10 +36,8 @@ class CompletedFutureValueTest extends \PHPUnit_Framework_TestCase
     {
         $ex = new CancelledFutureAccessException();
         $f = new CompletedFutureValue(null, $ex);
-        $this->assertTrue($f->cancelled());
-        $this->assertTrue($f->realized());
         try {
-            $f->deref();
+            $f->wait();
             $this->fail('did not throw');
         } catch (\Exception $e) {
             $this->assertSame($e, $ex);

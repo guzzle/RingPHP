@@ -116,8 +116,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertCount(0, Server::received());
 
         foreach ($responses as $response) {
-            $this->assertTrue($response->cancelled());
-            $this->assertTrue($response->realized());
+            $this->assertTrue($this->readAttribute($response, 'isRealized'));
         }
     }
 
@@ -130,7 +129,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]]
         ]);
-        $response->deref();
+        $response->wait();
         $this->assertFalse($response->cancel());
     }
 
@@ -145,23 +144,8 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]],
             'client'      => ['delay' => 100]
         ]);
-        $response->deref();
+        $response->wait();
         $this->assertGreaterThanOrEqual($expected, microtime(true));
-    }
-
-    public function testReturnsRealizedWhenReadyButNotDereferenced()
-    {
-        Server::flush();
-        Server::enqueue([['status' => 200]]);
-        $a = new CurlMultiAdapter();
-        $response = $a([
-            'http_method' => 'GET',
-            'headers'     => ['host' => [Server::$host]]
-        ]);
-        $ref = new \ReflectionMethod($a, 'execute');
-        $ref->setAccessible(true);
-        $ref->invoke($a);
-        $this->assertTrue($response->realized());
     }
 
     public function testSendsNonLazyFutures()

@@ -5,10 +5,10 @@ Futures
 Guzzle-Ring uses hybrid of futures and promises to provide a consistent API
 that can be used for both blocking and non-blocking consumers. Futures
 represent a computation that may have not yet completed. When a future is used,
-or *dereferenced*, the future will either return the completed result
-or block until the result is ready. Subsequent calls to dereference a future
-will returned the previously completed result. Futures can be cancelled,
-which stop the computation if possible.
+or *dereferenced* using the ``wait()`` method, the future will either return
+the completed result or block until the result is ready. Subsequent calls to
+dereference a future will returned the previously completed result. Futures
+can be cancelled, which stop the computation if possible.
 
 .. code-block:: php
 
@@ -47,9 +47,9 @@ Future Responses
 ----------------
 
 Guzzle-Ring uses futures to return asynchronous responses immediately. When a
-future response is used, or *dereferenced*, the future will either return the
-completed response or block until the response has completed and then return
-it.
+future response is used, or *dereferenced* using the ``wait()`` method, the
+future will either return the completed value or block until the value has
+completed and then return it.
 
 Client adapters always return future responses that implement
 ``GuzzleHttp\Ring\Future\ArrayFutureInterface``. These future responses act
@@ -60,14 +60,15 @@ just like normal PHP associative arrays and provide a promise interface.
     Futures that are not completed by the time the underlying adapter is
     destructed will be completed when the adapter is shutting down.
 
-Dereferencing
--------------
+Waiting
+-------
 
-Dereferencing a future response will block until it the response complete.
-While waiting on the response, other futures created by the same underlying
-adapter will continue to be sent concurrently. If you need something to happen
-the instant a future completes and do not wish to block, then you must use the
-promise API of a future using the future's ``then()`` method.
+You can wait on a future to complete using the ``wait()`` method of a future.
+Calling the ``wait()`` method will block until a value ready. While waiting on
+the value, other futures created by the same underlying adapter will continue
+to be sent concurrently. If you need something to happen the instant a future
+completes and do not wish to block, then you must use the promise API of a
+future using the future's ``then()`` method.
 
 .. code-block:: php
 
@@ -84,9 +85,15 @@ promise API of a future using the future's ``then()`` method.
     $response = $adapter($request);
 
     // This will block!
-    $response->deref();
-    // This will implicitly call deref(), and will block too!
+    $response->wait();
+
+    // This will implicitly call wait(), and will block too!
     $response['status'];
+
+    // Use the promise API to NOT block
+    $response->then(function ($response) {
+        echo $response['status'];
+    });
 
 Cancelling
 ----------

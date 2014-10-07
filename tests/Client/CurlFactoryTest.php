@@ -103,7 +103,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'HEAD',
             'headers' => ['host' => [Server::$host]]
         ]);
-        $response->deref();
+        $response->wait();
         $this->assertEquals(true, $_SERVER['_curl'][CURLOPT_NOBODY]);
         $checks = [CURLOPT_WRITEFUNCTION, CURLOPT_READFUNCTION, CURLOPT_FILE, CURLOPT_INFILE];
         foreach ($checks as $check) {
@@ -301,7 +301,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]],
             'client'      => ['debug' => $res]
         ]);
-        $response->deref();
+        $response->wait();
         rewind($res);
         $output = str_replace("\r", '', stream_get_contents($res));
         $this->assertContains(
@@ -327,7 +327,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
                 }
             ]
         ]);
-        $response->deref();
+        $response->wait();
         $this->assertNotEmpty($called);
         foreach ($called as $call) {
             $this->assertCount(4, $call);
@@ -363,7 +363,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]],
             'client'      => ['decode_content' => true],
         ]);
-        $response->deref();
+        $response->wait();
         $this->assertEquals('test', Core::body($response));
         $this->assertEquals('', $_SERVER['_curl'][CURLOPT_ENCODING]);
         $sent = Server::received()[0];
@@ -382,7 +382,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             ],
             'client' => ['decode_content' => true],
         ]);
-        $response->deref();
+        $response->wait();
         $this->assertEquals('gzip', $_SERVER['_curl'][CURLOPT_ENCODING]);
         $sent = Server::received()[0];
         $this->assertEquals('gzip', Core::header($sent, 'Accept-Encoding'));
@@ -398,7 +398,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]],
             'client'      => ['decode_content' => false]
         ]);
-        $response->deref();
+        $response->wait();
         $sent = Server::received()[0];
         $this->assertNull(Core::header($sent, 'Accept-Encoding'));
         $this->assertEquals($content, Core::body($response));
@@ -430,7 +430,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
                 'save_to' => $stream
             ],
         ]);
-        $response->deref();
+        $response->wait();
         rewind($stream);
         $this->assertEquals('test', stream_get_contents($stream));
     }
@@ -448,7 +448,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
                 'save_to'        => $stream
             ],
         ]);
-        $response->deref();
+        $response->wait();
         $this->assertEquals('test', (string) $stream);
     }
 
@@ -465,7 +465,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
                 'save_to'        => $tmpfile
             ],
         ]);
-        $response->deref();
+        $response->wait();
         $this->assertEquals('test', file_get_contents($tmpfile));
         unlink($tmpfile);
     }
@@ -498,7 +498,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]],
             'body'        => $stream
         ]);
-        $response->deref();
+        $response->wait();
         $sent = Server::received()[0];
         $this->assertEquals('chunked', Core::header($sent, 'Transfer-Encoding'));
         $this->assertNull(Core::header($sent, 'Content-Length'));
@@ -515,7 +515,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]],
             'body'        => $iter
         ]);
-        $response->deref();
+        $response->wait();
         $sent = Server::received()[0];
         $this->assertEquals('chunked', Core::header($sent, 'Transfer-Encoding'));
         $this->assertNull(Core::header($sent, 'Content-Length'));
@@ -538,7 +538,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             ],
             'body'        => $res
         ]);
-        $response->deref();
+        $response->wait();
         $sent = Server::received()[0];
         $this->assertNull(Core::header($sent, 'Transfer-Encoding'));
         $this->assertEquals(1000000, Core::header($sent, 'Content-Length'));
@@ -555,7 +555,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]],
             'body'        => $stream
         ]);
-        $response->deref();
+        $response->wait();
         $sent = Server::received()[0];
         $this->assertEquals(3, Core::header($sent, 'Content-Length'));
         $this->assertNull(Core::header($sent, 'Transfer-Encoding'));
@@ -574,7 +574,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             ],
             'body' => 'foo'
         ]);
-        $response->deref();
+        $response->wait();
         $sent = Server::received()[0];
         $this->assertEquals(3, Core::header($sent, 'Content-Length'));
         $this->assertNull(Core::header($sent, 'Transfer-Encoding'));
@@ -591,7 +591,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'uri'         => '/',
             'headers'     => ['host' => [Server::$host]]
         ]);
-        $response->deref();
+        $response->wait();
         $received = Server::received()[0];
         $this->assertEquals('POST', $received['http_method']);
         $this->assertNull(Core::header($received, 'content-type'));
@@ -684,7 +684,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         ];
 
         $adapter = new CurlMultiAdapter();
-        $response = $adapter($request)->deref();
+        $response = $adapter($request)->wait();
         $this->assertEquals(200, $response['status']);
         $this->assertEquals('OK', $response['reason']);
         $this->assertEquals(['Hello'], $response['headers']['Test']);

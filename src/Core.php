@@ -322,7 +322,7 @@ class Core
     ) {
         return new FutureArray(
             $future->then($onFulfilled, $onRejected, $onProgress),
-            [$future, 'deref'],
+            [$future, 'wait'],
             [$future, 'cancel']
         );
     }

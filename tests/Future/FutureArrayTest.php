@@ -18,7 +18,7 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
             }
         );
         $this->assertFalse($c);
-        $this->assertFalse($f->realized());
+        $this->assertFalse($this->readAttribute($f, 'isRealized'));
         $this->assertEquals(200, $f['status']);
         $this->assertTrue($c);
     }
@@ -35,7 +35,7 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue(isset($f['status']));
         $this->assertEquals(200, $f['status']);
-        $this->assertEquals(['status' => 200], $f->deref());
+        $this->assertEquals(['status' => 200], $f->wait());
         $this->assertEquals(1, count($f));
         $f['baz'] = 10;
         $this->assertEquals(10, $f['baz']);
