@@ -101,4 +101,20 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($f->cancelled());
         }
     }
+
+    /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage foo
+     */
+    public function testThrowingExceptionInDerefMarksAsFailed()
+    {
+        $deferred = new Deferred();
+        $f = new FutureValue(
+            $deferred->promise(),
+            function () {
+                throw new \Exception('foo');
+            }
+        );
+        $f->deref();
+    }
 }
