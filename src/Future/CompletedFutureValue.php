@@ -33,10 +33,7 @@ class CompletedFutureValue implements FutureInterface
         return $this->result;
     }
 
-    public function cancel()
-    {
-        return false;
-    }
+    public function cancel() {}
 
     public function then(
         callable $onFulfilled = null,

@@ -24,7 +24,7 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, $called);
         $this->assertEquals('foo', $f->wait());
         $this->assertEquals(1, $called);
-        $this->assertFalse($f->cancel());
+        $f->cancel();
         $this->assertTrue($this->readAttribute($f, 'isRealized'));
     }
 
@@ -38,7 +38,7 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
             function () {},
             function () { return true; }
         );
-        $this->assertTrue($f->cancel());
+        $f->cancel();
         $f->wait();
     }
 

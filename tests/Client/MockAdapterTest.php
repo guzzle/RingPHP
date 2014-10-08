@@ -70,7 +70,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
         $mock = new MockAdapter($future);
         $response = $mock([]);
         $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
-        $this->assertTrue($response->cancel());
+        $response->cancel();
         $this->assertTrue($c);
     }
 

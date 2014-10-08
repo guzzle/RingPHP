@@ -109,7 +109,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
                 'headers'     => ['host' => [Server::$host]],
                 'future'      => 'lazy'
             ]);
-            $this->assertTrue($response->cancel());
+            $response->cancel();
             $responses[] = $response;
         }
 
@@ -130,7 +130,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]]
         ]);
         $response->wait();
-        $this->assertFalse($response->cancel());
+        $response->cancel();
     }
 
     public function testDelaysInParallel()

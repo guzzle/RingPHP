@@ -10,7 +10,7 @@ class CompletedFutureValueTest extends \PHPUnit_Framework_TestCase
     {
         $f = new CompletedFutureValue('hi');
         $this->assertEquals('hi', $f->wait());
-        $this->assertFalse($f->cancel());
+        $f->cancel();
 
         $a = null;
         $f->then(function ($v) use (&$a) {
@@ -23,7 +23,7 @@ class CompletedFutureValueTest extends \PHPUnit_Framework_TestCase
     {
         $ex = new \Exception('foo');
         $f = new CompletedFutureValue(null, $ex);
-        $this->assertFalse($f->cancel());
+        $f->cancel();
         try {
             $f->wait();
             $this->fail('did not throw');

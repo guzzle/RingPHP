@@ -1,7 +1,6 @@
 <?php
 namespace GuzzleHttp\Ring\Future;
 
-use GuzzleHttp\Ring\Exception\CancelledException;
 use GuzzleHttp\Ring\Exception\CancelledFutureAccessException;
 use GuzzleHttp\Ring\Exception\RingException;
 use React\Promise\PromiseInterface;
@@ -20,8 +19,10 @@ trait BaseFutureTrait
     /** @var PromiseInterface */
     private $promise;
 
-    /** @var \Exception */
+    /** @var \Exception Error encountered. */
     private $error;
+
+    /** @var mixed Result of the future */
     private $result;
 
     private $isRealized = false;
@@ -36,9 +37,7 @@ trait BaseFutureTrait
      *                                  associated with the supplied promise.
      * @param callable         $cancel  If possible and reasonable, provide a
      *                                  function that can be used to cancel the
-     *                                  future from completing. The cancel
-     *                                  function should return true on success
-     *                                  and false on failure.
+     *                                  future from completing.
      */
     public function __construct(
         PromiseInterface $promise,
@@ -79,20 +78,17 @@ trait BaseFutureTrait
 
     public function cancel()
     {
-        // Cannot cancel a cancelled or completed future.
-        if ($this->isRealized) {
-            return false;
+        if (!$this->isRealized) {
+            $cancelfn = $this->cancelfn;
+            $this->waitfn = $this->cancelfn = null;
+            $this->isRealized = true;
+            $this->error = new CancelledFutureAccessException();
+            if ($cancelfn) {
+                $cancelfn($this);
+            }
         }
-
-        $cancelfn = $this->cancelfn;
-        $this->markCancelled(new CancelledFutureAccessException());
-
-        return $cancelfn ? $cancelfn($this) : false;
     }
 
-    /**
-     * Adds a then() shadow to the promise to get the resolved value or error.
-     */
     private function addShadow()
     {
         // Get the result and error when the promise is resolved. Note that
@@ -107,9 +103,6 @@ trait BaseFutureTrait
                 $this->isRealized = true;
                 $this->error = $error;
                 $this->waitfn = $this->cancelfn = null;
-                if ($error instanceof CancelledException) {
-                    $this->markCancelled($error);
-                }
             }
         );
     }
@@ -120,21 +113,10 @@ trait BaseFutureTrait
             $wait = $this->waitfn;
             $this->waitfn = null;
             $wait();
-        } catch (CancelledException $e) {
-            // Throwing this exception adds an error and marks the
-            // future as cancelled.
-            $this->markCancelled($e);
         } catch (\Exception $e) {
             // Defer can throw to reject.
             $this->error = $e;
             $this->isRealized = true;
         }
-    }
-
-    private function markCancelled(CancelledException $e)
-    {
-        $this->waitfn = $this->cancelfn = null;
-        $this->isRealized = true;
-        $this->error = $e;
     }
 }

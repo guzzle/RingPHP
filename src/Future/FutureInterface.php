@@ -33,16 +33,7 @@ interface FutureInterface extends PromiseInterface
     public function wait();
 
     /**
-     * Cancels the future.
-     *
-     * There are three different cases handled by this method:
-     *
-     * 1. Returns false if the future is already realized.
-     * 2. Returns false if the future has no cancel function.
-     * 3. Returns the result of invoking a cancellation function if the future
-     *    has a cancel function.
-     *
-     * @return bool
+     * Cancels the future, if possible.
      */
     public function cancel();
 }
