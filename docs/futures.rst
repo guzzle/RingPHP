@@ -54,14 +54,11 @@ possible.
 Future Responses
 ----------------
 
-Guzzle-Ring uses futures to return asynchronous responses immediately. When a
-future response is used, or *dereferenced* using the ``wait()`` method, the
-future will either return the completed value or block until the value has
-completed and then return it.
-
-Client adapters always return future responses that implement
+Guzzle-Ring uses futures to return asynchronous responses immediately. Client
+adapters always return future responses that implement
 ``GuzzleHttp\Ring\Future\ArrayFutureInterface``. These future responses act
-just like normal PHP associative arrays and provide a promise interface.
+just like normal PHP associative arrays for blocking access and provide a
+promise interface for non-blocking access.
 
 .. important::
 
@@ -72,11 +69,11 @@ Waiting
 -------
 
 You can wait on a future to complete using the ``wait()`` method of a future.
-Calling the ``wait()`` method will block until a value ready. While waiting on
-the value, other futures created by the same underlying adapter will continue
-to be sent concurrently. If you need something to happen the instant a future
-completes and do not wish to block, then you must use the promise API of a
-future using the future's ``then()`` method.
+Calling the ``wait()`` method will block until a value is ready. While waiting
+on the value, other futures created by the same underlying adapter will
+continue to be sent concurrently. If you need something to happen the instant
+a future completes and do not wish to block, then you must use the promise API
+of a future using the future's ``then()`` method.
 
 .. code-block:: php
 
@@ -107,10 +104,10 @@ Cancelling
 ----------
 
 Futures can be cancelled if they have not already been dereferenced. Cancelling
-a future will prevent the future from executing the dereference function and,
-if possible, will stop the request from sending.
+a future will prevent the future from executing the dereference function.
 
-Guzzle-Ring futures are typically implementing with the
+Cancelling a future response will try to prevent the request from sending over
+the wire. Guzzle-Ring futures are typically implemented with the
 ``GuzzleHttp\Ring\Future\BaseFutureTrait``. This trait provides the cancellation
 functionality that should be common to most implementations.
 
