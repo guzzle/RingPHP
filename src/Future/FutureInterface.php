@@ -28,7 +28,7 @@ interface FutureInterface extends PromiseInterface
      * the future as realized, will not throw immediately, but will throw the
      * exception if the future's wait() method is called again.
      *
-     * @return array
+     * @return mixed
      */
     public function wait();
 
