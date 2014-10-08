@@ -2,30 +2,16 @@
 Futures
 =======
 
-Guzzle-Ring uses hybrid of futures and promises to provide a consistent API
-that can be used for both blocking and non-blocking consumers. Futures
-represent a computation that may have not yet completed. When a future is used,
-or *dereferenced* using the ``wait()`` method, the future will either return
-the completed result or block until the result is ready. Subsequent calls to
-dereference a future will returned the previously completed result. Futures
-can be cancelled, which stop the computation if possible.
+Futures represent a computation that may have not yet completed. Guzzle-Ring
+uses hybrid of futures and promises to provide a consistent API that can be
+used for both blocking and non-blocking consumers.
 
-.. code-block:: php
-
-    use GuzzleHttp\Ring\Client\CurlMultiAdapter;
-
-    $response = $adapter([
-        'http_method' => 'GET',
-        'uri'         => '/',
-        'headers'     => ['host' => ['httpbin.org']]
-    ]);
-
-    // You can block until a result is ready by using a future like a normal value
-    echo $response['status'];
+Promises
+--------
 
 You can get the result of a future when it is ready using the promise interface
 of a future. Futures expose a promise API via a ``then()`` method that utilizes
-`ReactPHP's promise library <https://github.com/reactphp/promise>`_. You should
+`React's promise library <https://github.com/reactphp/promise>`_. You should
 use this API when you do not wish to block.
 
 .. code-block:: php
@@ -42,6 +28,28 @@ use this API when you do not wish to block.
     $response->then(function ($response) {
         echo $response['status'];
     });
+
+Blocking
+--------
+
+When a future is used, or *dereferenced* using the ``wait()`` method, the
+future will either return the completed result or block until the result is
+ready. Subsequent calls to dereference a future will return the previously
+completed result. Futures can be cancelled, which stop the computation if
+possible.
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+
+    $response = $adapter([
+        'http_method' => 'GET',
+        'uri'         => '/',
+        'headers'     => ['host' => ['httpbin.org']]
+    ]);
+
+    // You can block until a result is ready by using a future like a normal value
+    echo $response['status'];
 
 Future Responses
 ----------------
