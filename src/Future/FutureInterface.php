@@ -2,6 +2,7 @@
 namespace GuzzleHttp\Ring\Future;
 
 use React\Promise\PromiseInterface;
+use React\Promise\PromisorInterface;
 
 /**
  * Represents the result of a computation that may not have completed yet.
@@ -15,7 +16,7 @@ use React\Promise\PromiseInterface;
  * computation has not yet completed when wait() is called, the call to wait()
  * will block until the future has completed.
  */
-interface FutureInterface extends PromiseInterface
+interface FutureInterface extends PromisorInterface
 {
     /**
      * Returns the result of the future either from cache or by blocking until
@@ -36,4 +37,20 @@ interface FutureInterface extends PromiseInterface
      * Cancels the future, if possible.
      */
     public function cancel();
+
+    /**
+     * Create and return a promise that invokes the given methods when the
+     * future has a value, exception, or progress events.
+     *
+     * @param callable $onFulfilled Called when the promise is resolved.
+     * @param callable $onRejected  Called when the promise is rejected.
+     * @param callable $onProgress  Called on progress events.
+     *
+     * @return PromiseInterface
+     */
+    public function then(
+        callable $onFulfilled = null,
+        callable $onRejected = null,
+        callable $onProgress = null
+    );
 }

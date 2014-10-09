@@ -11,7 +11,8 @@ class CompletedFutureValue implements FutureInterface
 {
     protected $result;
     protected $error;
-    private $promise;
+
+    private $cachedPromise;
 
     /**
      * @param mixed      $result Resolved result
@@ -35,17 +36,22 @@ class CompletedFutureValue implements FutureInterface
 
     public function cancel() {}
 
+    public function promise()
+    {
+        if (!$this->cachedPromise) {
+            $this->cachedPromise = $this->error
+                ? new RejectedPromise($this->error)
+                : new FulfilledPromise($this->result);
+        }
+
+        return $this->cachedPromise;
+    }
+
     public function then(
         callable $onFulfilled = null,
         callable $onRejected = null,
         callable $onProgress = null
     ) {
-        if (!$this->promise) {
-            $this->promise = $this->error
-                ? new RejectedPromise($this->error)
-                : new FulfilledPromise($this->result);
-        }
-
-        return $this->promise->then($onFulfilled, $onRejected, $onProgress);
+        return $this->promise()->then($onFulfilled, $onRejected, $onProgress);
     }
 }

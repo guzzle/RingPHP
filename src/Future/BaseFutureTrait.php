@@ -17,7 +17,7 @@ trait BaseFutureTrait
     private $cancelfn;
 
     /** @var PromiseInterface */
-    private $promise;
+    private $wrappedPromise;
 
     /** @var \Exception Error encountered. */
     private $error;
@@ -44,7 +44,7 @@ trait BaseFutureTrait
         callable $wait = null,
         callable $cancel = null
     ) {
-        $this->promise = $promise;
+        $this->wrappedPromise = $promise;
         $this->waitfn = $wait;
         $this->cancelfn = $cancel;
     }
@@ -68,12 +68,17 @@ trait BaseFutureTrait
         return $this->result;
     }
 
+    public function promise()
+    {
+        return $this->wrappedPromise;
+    }
+
     public function then(
         callable $onFulfilled = null,
         callable $onRejected = null,
         callable $onProgress = null
     ) {
-        return $this->promise->then($onFulfilled, $onRejected, $onProgress);
+        return $this->wrappedPromise->then($onFulfilled, $onRejected, $onProgress);
     }
 
     public function cancel()
@@ -93,7 +98,7 @@ trait BaseFutureTrait
     {
         // Get the result and error when the promise is resolved. Note that
         // calling this function might trigger the resolution immediately.
-        $this->promise->then(
+        $this->wrappedPromise->then(
             function ($value) {
                 $this->isRealized = true;
                 $this->result = $value;

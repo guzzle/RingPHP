@@ -273,8 +273,8 @@ effective_url
     (string) The URL that returned the resulting response.
 
 error
-    (``GuzzleHttp\Ring\HandlerAdapter``) Contains an exception describing any
-    errors that were encountered during the transfer.
+    (``\Exception``) Contains an exception describing any errors that were
+    encountered during the transfer.
 
 headers
     (Required, array) Associative array of headers. Each key represents the
