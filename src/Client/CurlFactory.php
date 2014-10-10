@@ -2,6 +2,7 @@
 namespace GuzzleHttp\Ring\Client;
 
 use GuzzleHttp\Ring\Core;
+use GuzzleHttp\Ring\Exception\ConnectException;
 use GuzzleHttp\Ring\Exception\RingException;
 use GuzzleHttp\Stream\LazyOpenStream;
 use GuzzleHttp\Stream\StreamInterface;
@@ -98,6 +99,14 @@ class CurlFactory
         array $request,
         array $response
     ) {
+        static $connectionErrors = [
+            CURLE_OPERATION_TIMEOUTED  => true,
+            CURLE_COULDNT_RESOLVE_HOST => true,
+            CURLE_COULDNT_CONNECT      => true,
+            CURLE_SSL_CONNECT_ERROR    => true,
+            CURLE_GOT_NOTHING          => true,
+        ];
+
         // Retry when nothing is present or when curl failed to rewind.
         if (!isset($response['err_message'])
             && (empty($response['curl']['errno'])
@@ -114,12 +123,17 @@ class CurlFactory
                     ? $response['curl']['error']
                     : 'See http://curl.haxx.se/libcurl/c/libcurl-errors.html');
 
+        $error = isset($response['curl']['errno'])
+            && isset($connectionErrors[$response['curl']['errno']])
+            ? new ConnectException($message)
+            : new RingException($message);
+
         return $response + [
             'status'  => null,
             'reason'  => null,
             'body'    => null,
             'headers' => [],
-            'error'   => new RingException($message)
+            'error'   => $error
         ];
     }
 

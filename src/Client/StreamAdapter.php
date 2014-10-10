@@ -2,6 +2,7 @@
 namespace GuzzleHttp\Ring\Client;
 
 use GuzzleHttp\Ring\Core;
+use GuzzleHttp\Ring\Exception\ConnectException;
 use GuzzleHttp\Ring\Exception\RingException;
 use GuzzleHttp\Ring\Future\CompletedFutureArray;
 use GuzzleHttp\Stream\InflateStream;
@@ -31,7 +32,7 @@ class StreamAdapter
             $request = Core::removeHeader($request, 'Expect');
             $stream = $this->createStream($url, $request, $headers);
             return $this->createResponse($request, $url, $headers, $stream);
-        } catch (\Exception $e) {
+        } catch (RingException $e) {
             return $this->createErrorResponse($url, $e);
         }
     }
@@ -113,15 +114,21 @@ class StreamAdapter
     /**
      * Creates an error response for the given stream.
      *
-     * @param string     $url
-     * @param \Exception $e
+     * @param string        $url
+     * @param RingException $e
      *
      * @return array
      */
-    private function createErrorResponse($url, \Exception $e)
+    private function createErrorResponse($url, RingException $e)
     {
-        if (!($e instanceof RingException)) {
-            $e = new RingException($e->getMessage(), 0, $e);
+        // Determine if the error was a networking error.
+        $message = $e->getMessage();
+
+        // This list can probably get more comprehensive.
+        if (strpos($message, 'getaddrinfo') // DNS lookup failed
+            || strpos($message, 'Connection refused')
+        ) {
+            $e = new ConnectException($e->getMessage(), 0, $e);
         }
 
         return [
@@ -155,7 +162,7 @@ class StreamAdapter
             foreach ((array) error_get_last() as $key => $value) {
                 $message .= "[{$key}] {$value} ";
             }
-            throw new \RuntimeException(trim($message));
+            throw new RingException(trim($message));
         }
 
         return $resource;
@@ -264,13 +271,13 @@ class StreamAdapter
         } elseif (is_string($value)) {
             $options['ssl']['cafile'] = $value;
             if (!file_exists($value)) {
-                throw new \RuntimeException("SSL CA bundle not found: $value");
+                throw new RingException("SSL CA bundle not found: $value");
             }
         } elseif ($value === false) {
             $options['ssl']['verify_peer'] = false;
             return;
         } else {
-            throw new \InvalidArgumentException('Invalid verify request option');
+            throw new RingException('Invalid verify request option');
         }
 
         $options['ssl']['verify_peer'] = true;
@@ -285,7 +292,7 @@ class StreamAdapter
         }
 
         if (!file_exists($value)) {
-            throw new \RuntimeException("SSL certificate not found: {$value}");
+            throw new RingException("SSL certificate not found: {$value}");
         }
 
         $options['ssl']['local_cert'] = $value;
@@ -348,7 +355,7 @@ class StreamAdapter
         }
 
         if (!is_array($request['client']['stream_context'])) {
-            throw new \RuntimeException('stream_context must be an array');
+            throw new RingException('stream_context must be an array');
         }
 
         $options = array_replace_recursive(

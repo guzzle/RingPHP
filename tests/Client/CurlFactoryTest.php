@@ -691,6 +691,24 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(['4'], $response['headers']['Content-Length']);
         $this->assertEquals('test', Core::body($response));
     }
+
+    public function testCreatesConnectException()
+    {
+        $m = new \ReflectionMethod('GuzzleHttp\Ring\Client\CurlFactory', 'createErrorResponse');
+        $m->setAccessible(true);
+        $response = $m->invoke(
+            null,
+            function () {},
+            [],
+            [
+                'err_message' => 'foo',
+                'curl' => [
+                    'errno' => CURLE_COULDNT_CONNECT
+                ]
+            ]
+        );
+        $this->assertInstanceOf('GuzzleHttp\Ring\Exception\ConnectException', $response['error']);
+    }
 }
 
 }
