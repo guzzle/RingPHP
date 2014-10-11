@@ -62,7 +62,7 @@ settings need to send a request.
         'body'        => 'hello!',
         'client'      => ['timeout' => 1.0],
         'headers'     => [
-            'host' => ['httpbin.org'],
+            'host'  => ['httpbin.org'],
             'X-Foo' => ['baz', 'bar']
         ]
     ];

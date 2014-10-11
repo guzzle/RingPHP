@@ -18,30 +18,31 @@ use this API when you do not wish to block.
 
     use GuzzleHttp\Ring\Client\CurlMultiAdapter;
 
-    $response = $adapter([
+    $request = [
         'http_method' => 'GET',
         'uri'         => '/',
         'headers'     => ['host' => ['httpbin.org']]
-    ]);
+    ];
+
+    $response = $adapter($request);
 
     // Use the then() method to use the promise API of the future.
     $response->then(function ($response) {
         echo $response['status'];
     });
 
-You can get the promise used by the future, an instance of
-``React\Promise\PromiseInterface``, by calling the ``promise()`` method of the
-future.
+You can get the promise used by a future, an instance of
+``React\Promise\PromiseInterface``, by calling the ``promise()`` method.
 
 .. code-block:: php
 
+    $response = $adapter($request);
     $promise = $response->promise();
-
     $promise->then(function ($response) {
         echo $response['status'];
     });
 
-This promise value can used with React's
+This promise value can be used with React's
 `aggregate promise functions <https://github.com/reactphp/promise#functions>`_.
 
 Waiting
@@ -49,9 +50,11 @@ Waiting
 
 You can wait on a future to complete and retrieve the value, or *dereference*
 the future, using the ``wait()`` method. Calling the ``wait()`` method of a
-future will block until the result is available and return it. Subsequent calls
-to dereference a future will return the previously completed result. Futures
-can be cancelled, which stops the computation if possible.
+future will block until the result is available. The result is then returned or
+an exception is thrown if and exception was encountered while waiting on the
+the result. Subsequent calls to dereference a future will return the previously
+completed result or throw the previously encountered exception. Futures can be
+cancelled, which stops the computation if possible.
 
 .. code-block:: php
 
@@ -115,8 +118,7 @@ promise interface for non-blocking access.
 Cancelling
 ----------
 
-Futures can be cancelled if they have not already been dereferenced. Cancelling
-a future will prevent the future from executing the dereference function.
+Futures can be cancelled if they have not already been dereferenced.
 
 Guzzle-Ring futures are typically implemented with the
 ``GuzzleHttp\Ring\Future\BaseFutureTrait``. This trait provides the cancellation
@@ -130,3 +132,33 @@ If no cancellation function is provided, then a request cannot be cancelled. If
 a cancel function is provided, then it should accept the future as an argument
 and return true if the future was successfully cancelled or false if it could
 not be cancelled.
+
+Wrapping an existing Promise
+----------------------------
+
+You can easily create a future from any existing promise using the
+``GuzzleHttp\Ring\Future\FutureValue`` class. This class's constructor
+accepts a promise as the first argument, a wait function as the second
+argument, and a cancellation function as the third argument. The dereference
+function is used to force the promise to resolve (for example, manually ticking
+an event loop). The cancel function is optional and is used to tell the thing
+that created the promise that it can stop computing the result (for example,
+telling an event loop to stop transferring a request).
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Future\FutureValue;
+    use React\Promise\Deferred;
+
+    $deferred = new Deferred();
+    $promise = $deferred->promise();
+
+    $f = new FutureValue(
+        $promise,
+        function () use ($deferred) {
+            // This function is responsible for blocking and resolving the
+            // promise. Here we pass in a reference to the deferred so that
+            // it can be resolved or rejected.
+            $deferred->resolve('foo');
+        }
+    );

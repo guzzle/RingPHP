@@ -49,9 +49,6 @@ option.
         ]
     ]);
 
-    // The response has already completed
-    assert(true == $response->realized());
-
     // Even though it's already completed, you can still use a promise
     $response->then(function ($response) {
         echo $response['status']; // 200
@@ -66,7 +63,8 @@ cURL Adapter
 The ``GuzzleHttp\Ring\Client\CurlAdapter`` can be used with PHP 5.5+ to send
 requests using cURL easy handles. This adapter is great for sending requests
 one at a time because the execute and select loop is implemented in C code
-which executes faster and consumes less memory.
+which executes faster and consumes less memory than using PHP's
+``curl_multi_*`` interface.
 
 .. note::
 
@@ -74,7 +72,7 @@ which executes faster and consumes less memory.
 
 When using the CurlAdapter, custom curl options can be specified as an
 associative array of `cURL option constants <http://php.net/manual/en/curl.constants.php>`_
-mapping to values in the **curl** key of the ``client`` key of the request.
+mapping to values in the ``client`` option of a requst using the **curl** key.
 
 .. code-block:: php
 
@@ -90,13 +88,10 @@ mapping to values in the **curl** key of the ``client`` key of the request.
 
     $response = $adapter($request);
 
-    // The response will always have completed when it is returned.
-    assert(true == $response->realized());
-
-    // Can be used as a future
+    // The response can be used directly as an array.
     echo $response['status']; // 200
 
-    // Can be used as a promise
+    // Or, it can be used as a promise (that has already fulfilled).
     $response->then(function ($response) {
         echo $response['status']; // 200
     });
@@ -119,24 +114,25 @@ cURL's `multi API <http://curl.haxx.se/libcurl/c/libcurl-multi.html>`_. The
         'headers'     => ['host' => [Server::$host]]
     ];
 
-    // this call returns immediately.
+    // this call returns a future array immediately.
     $response = $adapter($request);
 
     // Ideally, you should use the promise API to not block.
-    $response->then(function ($response) {
-        // Got the response at some point in the future
-        echo $response['status']; // 200
-        // Don't break the chain
-        return $response;
-    })->then(function ($response) {
-        // ...
-    });
+    $response
+        ->then(function ($response) {
+            // Got the response at some point in the future
+            echo $response['status']; // 200
+            // Don't break the chain
+            return $response;
+        })->then(function ($response) {
+            // ...
+        });
 
     // If you really need to block, then you can use the response as an
     // associative array. This will block until it has completed.
     echo $response['status']; // 200
 
-Just like the ``CurlAdapter``, the ``CurlMultiAdapter`` accepts cusotm curl
+Just like the ``CurlAdapter``, the ``CurlMultiAdapter`` accepts custom curl
 option in the ``curl`` key of the ``client`` request option.
 
 Mock Adapter
@@ -151,7 +147,7 @@ function.
 
     use GuzzleHttp\Ring\Client\MockAdapter;
 
-    // Return a canned repsonse.
+    // Return a canned response.
     $mock = new MockAdapter(['status' => 200]);
     $response = $mock([]);
     assert(200 == $response['status']);
@@ -161,9 +157,9 @@ Implementing Adapters
 ---------------------
 
 Client adapters are just PHP callables (functions or classes that have the
-``__invoke`` magic method). The callable accepts a request array and MUT return
-an instance of ``GuzzleHttp\Ring\Future\FutureArrayInterface`` so that the
-response can be used by both blocking and non-blocking consumers.
+``__invoke`` magic method). The callable accepts a request array and MUST
+return an instance of ``GuzzleHttp\Ring\Future\FutureArrayInterface`` so that
+the response can be used by both blocking and non-blocking consumers.
 
 Adapters need to follow a few simple rules:
 

@@ -58,7 +58,7 @@ easy to create a new instance of ``FutureArrayInterface`` that wraps an existing
 Let's say you wanted to add headers to a response as they are returned from
 your middleware, but you want to make sure you aren't causing future
 responses to be dereferenced right away. You can achieve this by modifying the
-incoming request and using the ``Core::proxt`` function.
+incoming request and using the ``Core::proxy`` function.
 
 .. code-block:: php
 
@@ -69,12 +69,14 @@ incoming request and using the ``Core::proxt`` function.
 
     $responseHeaderHandler = function (callable $handler, array $headers) {
         return function (array $request) use ($handler, $headers) {
-            // Send the request using the wrapped and return the response.
+            // Send the request using the wrapped handler.
             return Core::proxy($handler($request), function ($response) use ($headers) {
                 // Add the headers to the response when it is available.
                 foreach ($headers as $key => $value) {
                     $response['headers'][$key] = (array) $value;
                 }
+                // Note that you can return a regular response array when using
+                // the proxy method.
                 return $response;
             });
         }
@@ -134,9 +136,7 @@ Future Middleware
 
 If you want to send all requests with the ``future`` option to a specific
 adapter but other requests to a different adapter, then use the future
-middleware. Like the synchronous middleware, this middleware converts future
-responses to synchronous responses if the ``future`` request option was not set
-to ``true`` on the request hash.
+middleware.
 
 .. code-block:: php
 
@@ -151,13 +151,13 @@ to ``true`` on the request hash.
         $futureAdapter
     );
 
-    // Send the request using the blocking adapter.
+    // Send the request using the blocking CurlAdapter.
     $response = $futureHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com']
     ]);
 
-    // Send the request using the future, non-blocking, adapter.
+    // Send the request using the non-blocking CurlMultiAdapter.
     $response = $futureHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com'],
