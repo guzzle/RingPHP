@@ -95,38 +95,4 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         $a($request);
         $a($request);
     }
-
-    public function testHasNoMemoryLeaks()
-    {
-        Server::flush();
-        $response = ['status' => 200];
-        Server::enqueue(array_fill_keys(range(0, 100), $response));
-        $a = new CurlAdapter();
-        $memory = [];
-
-        for ($i = 0; $i < 100; $i++) {
-            $a([
-                'http_method' => 'GET',
-                'headers'     => ['host' => [Server::$host]],
-                'client'      => [
-                    'save_to' => FnStream::decorate(Stream::factory(), [
-                        'write' => function ($str) {
-                            return strlen($str);
-                        }
-                    ])
-                ]
-            ]);
-            $memory[] = memory_get_usage(true);
-        }
-
-        $this->assertCount(100, Server::received());
-        // Take the last 50 entries and ensure they are consistent
-        $last = $memory[9];
-        $entries = array_slice($memory, 50);
-
-        foreach ($entries as $entry) {
-            $this->assertEquals($last, $entry);
-            $last = $entry;
-        }
-    }
 }
