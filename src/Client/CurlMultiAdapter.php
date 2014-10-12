@@ -75,7 +75,7 @@ class CurlMultiAdapter
             'handle'   => $result[0],
             'headers'  => &$result[1],
             'body'     => $result[2],
-            'deferred' => new Deferred()
+            'deferred' => new Deferred(),
         ];
 
         $id = (int) $result[0];

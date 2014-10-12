@@ -44,7 +44,7 @@ class StreamAdapter
             'status'         => $parts[1],
             'reason'         => isset($parts[2]) ? $parts[2] : null,
             'headers'        => Core::headersFromLines($hdrs),
-            'effective_url'  => $url
+            'effective_url'  => $url,
         ];
 
         $stream = $this->checkDecode($request, $response, $stream);
@@ -227,8 +227,8 @@ class StreamAdapter
                 'header'           => $headers,
                 'protocol_version' => '1.1',
                 'ignore_errors'    => true,
-                'follow_location'  => 0
-            ]
+                'follow_location'  => 0,
+            ],
         ];
 
         $body = Core::body($request);
@@ -324,7 +324,7 @@ class StreamAdapter
             STREAM_NOTIFY_PROGRESS      => 'PROGRESS',
             STREAM_NOTIFY_FAILURE       => 'FAILURE',
             STREAM_NOTIFY_COMPLETED     => 'COMPLETED',
-            STREAM_NOTIFY_RESOLVE       => 'RESOLVE'
+            STREAM_NOTIFY_RESOLVE       => 'RESOLVE',
         ];
 
         static $args = ['severity', 'message', 'message_code',

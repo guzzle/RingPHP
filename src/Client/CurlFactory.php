@@ -133,7 +133,7 @@ class CurlFactory
             'reason'  => null,
             'body'    => null,
             'headers' => [],
-            'error'   => $error
+            'error'   => $error,
         ];
     }
 

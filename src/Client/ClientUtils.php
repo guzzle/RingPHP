@@ -34,7 +34,7 @@ class ClientUtils
             '/usr/local/etc/openssl/cert.pem',
             // Windows?
             'C:\\windows\\system32\\curl-ca-bundle.crt',
-            'C:\\windows\\curl-ca-bundle.crt'
+            'C:\\windows\\curl-ca-bundle.crt',
         ];
 
         if ($cached) {

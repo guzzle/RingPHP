@@ -11,7 +11,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $a = new CurlMultiAdapter();
         $response = $a([
             'http_method' => 'GET',
-            'headers'     => ['host' => [Server::$host]]
+            'headers'     => ['host' => [Server::$host]],
         ]);
         $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
         $this->assertEquals(200, $response['status']);
@@ -31,7 +31,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $a = new CurlMultiAdapter();
         $response = $a([
             'http_method' => 'GET',
-            'headers'     => ['host' => ['localhost:123']]
+            'headers'     => ['host' => ['localhost:123']],
         ]);
         $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
         $this->assertNull($response['status']);
@@ -57,7 +57,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $a = new CurlMultiAdapter();
         $response = $a([
             'http_method' => 'GET',
-            'headers'     => ['host' => [Server::$host]]
+            'headers'     => ['host' => [Server::$host]],
         ]);
         $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
         $a->__destruct();
@@ -81,7 +81,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $request = [
             'http_method' => 'PUT',
             'headers'     => ['host' => [Server::$host]],
-            'future'      => 'lazy' // passing this to control the test
+            'future'      => 'lazy', // passing this to control the test
         ];
         $response = ['status' => 200];
         Server::flush();
@@ -107,7 +107,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
             $response = $a([
                 'http_method' => 'GET',
                 'headers'     => ['host' => [Server::$host]],
-                'future'      => 'lazy'
+                'future'      => 'lazy',
             ]);
             $response->cancel();
             $responses[] = $response;
@@ -127,7 +127,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $a = new CurlMultiAdapter();
         $response = $a([
             'http_method' => 'GET',
-            'headers'     => ['host' => [Server::$host]]
+            'headers'     => ['host' => [Server::$host]],
         ]);
         $response->wait();
         $response->cancel();
@@ -142,7 +142,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $response = $a([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
-            'client'      => ['delay' => 100]
+            'client'      => ['delay' => 100],
         ]);
         $response->wait();
         $this->assertGreaterThanOrEqual($expected, microtime(true));
@@ -153,7 +153,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $request = [
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
-            'future'      => true
+            'future'      => true,
         ];
         Server::flush();
         Server::enqueue([['status' => 202]]);

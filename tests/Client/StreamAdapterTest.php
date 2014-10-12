@@ -16,8 +16,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'uri'         => '/',
             'headers'     => [
                 'host' => [Server::$host],
-                'Foo' => ['Bar']
-            ]
+                'Foo' => ['Bar'],
+            ],
         ]);
 
         $this->assertEquals(200, $response['status']);
@@ -39,7 +39,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $result = $adapter([
             'http_method' => 'GET',
             'headers'     => ['host' => ['localhost:123']],
-            'client'      => ['timeout' => 0.01]
+            'client'      => ['timeout' => 0.01],
         ]);
 
         $this->assertNull($result['status']);
@@ -56,7 +56,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $adapter = new StreamAdapter();
         $result = $adapter([
             'http_method' => 'GET',
-            'url'         => 'ftp://localhost:123'
+            'url'         => 'ftp://localhost:123',
         ]);
         $this->assertArrayHasKey('error', $result);
         $this->assertContains(
@@ -75,10 +75,10 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'query_string' => 'baz=bar',
             'headers'      => [
                 'host' => [Server::$host],
-                'Foo'  => ['Bar']
+                'Foo'  => ['Bar'],
             ],
             'body'         => 'test',
-            'client'       => ['stream' => true]
+            'client'       => ['stream' => true],
         ]);
 
         $this->assertEquals(200, $response['status']);
@@ -105,7 +105,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'GET',
             'uri'         => '/',
-            'headers'     => ['host' => [Server::$host]]
+            'headers'     => ['host' => [Server::$host]],
         ]);
         $body = $response['body'];
         $this->assertEquals('php://temp', stream_get_meta_data($body)['uri']);
@@ -122,7 +122,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'uri' => '/',
             'headers' => ['host' => [Server::$host]],
-            'client' => ['save_to' => $r]
+            'client' => ['save_to' => $r],
         ]);
         $body = $response['body'];
         $this->assertEquals('php://temp', stream_get_meta_data($body)['uri']);
@@ -140,7 +140,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'uri' => '/',
             'headers' => ['host' => [Server::$host]],
-            'client' => ['save_to' => $tmpfname]
+            'client' => ['save_to' => $tmpfname],
         ]);
         $body = $response['body'];
         $this->assertInstanceOf('GuzzleHttp\Stream\StreamInterface', $body);
@@ -160,10 +160,10 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
                 'reason' => 'OK',
                 'headers' => [
                     'Content-Encoding' => ['gzip'],
-                    'Content-Length' => [strlen($content)]
+                    'Content-Length' => [strlen($content)],
                 ],
-                'body' => $content
-            ]
+                'body' => $content,
+            ],
         ]);
 
         $adapter = new StreamAdapter();
@@ -171,7 +171,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'uri'         => '/',
-            'client'      => ['decode_content' => true]
+            'client'      => ['decode_content' => true],
         ]);
         $this->assertEquals('test', Core::body($response));
     }
@@ -186,10 +186,10 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
                 'reason' => 'OK',
                 'headers' => [
                     'Content-Encoding' => ['gzip'],
-                    'Content-Length'   => [strlen($content)]
+                    'Content-Length'   => [strlen($content)],
                 ],
-                'body' => $content
-            ]
+                'body' => $content,
+            ],
         ]);
 
         $adapter = new StreamAdapter();
@@ -197,7 +197,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'uri'         => '/',
-            'client'      => ['stream' => true, 'decode_content' => false]
+            'client'      => ['stream' => true, 'decode_content' => false],
         ]);
         $this->assertSame($content, Core::body($response));
     }
@@ -211,7 +211,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'uri'         => '/',
             'headers'     => ['host' => [Server::$host]],
-            'client'      => $opts
+            'client'      => $opts,
         ]);
     }
 
@@ -329,7 +329,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
         $this->getSendResult([
             'progress' => function () use (&$called) {
                 $called[] = func_get_args();
-            }
+            },
         ]);
         $this->assertNotEmpty($called);
         $this->assertEquals(8, $called[0][0]);
@@ -345,7 +345,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'debug'    => $buffer,
             'progress' => function () use (&$called) {
                 $called[] = func_get_args();
-            }
+            },
         ]);
         $this->assertNotEmpty($called);
         $this->assertEquals(8, $called[0][0]);
@@ -369,15 +369,15 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'stream_context' => [
                 'http' => [
                     'request_fulluri' => true,
-                    'method' => 'HEAD'
+                    'method' => 'HEAD',
                 ],
                 'socket' => [
-                    'bindto' => '127.0.0.1:0'
+                    'bindto' => '127.0.0.1:0',
                 ],
                 'ssl' => [
-                    'verify_peer' => false
-                ]
-            ]
+                    'verify_peer' => false,
+                ],
+            ],
         ]);
 
         $opts = stream_context_get_options($res['body']);
@@ -404,7 +404,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'PUT',
             'uri' => '/',
             'headers' => ['host' => [Server::$host], 'content-length' => [3]],
-            'body' => 'foo'
+            'body' => 'foo',
         ]);
         $req = Server::received()[0];
         $this->assertEquals('', Core::header($req, 'Content-Type'));
@@ -420,10 +420,10 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
                 'reason' => 'OK',
                 'headers' => [
                     'Foo' => ['Bar'],
-                    'Content-Length' => [8]
+                    'Content-Length' => [8],
                 ],
-                'body' => 'hi there'
-            ]
+                'body' => 'hi there',
+            ],
         ]);
     }
 
@@ -436,19 +436,19 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
                 'reason' => 'OK',
                 'headers' => [
                     'Test' => ['Hello'],
-                    'Content-Length' => ['4']
+                    'Content-Length' => ['4'],
                 ],
-                'body' => 'test'
-            ]
+                'body' => 'test',
+            ],
         ]);
 
         $request = [
             'http_method' => 'PUT',
             'headers'     => [
                 'Host'   => [Server::$host],
-                'Expect' => ['100-Continue']
+                'Expect' => ['100-Continue'],
             ],
-            'body'        => 'test'
+            'body'        => 'test',
         ];
 
         $adapter = new StreamAdapter();

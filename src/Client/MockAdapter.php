@@ -38,7 +38,7 @@ class MockAdapter
                 'body'          => null,
                 'headers'       => [],
                 'reason'        => null,
-                'effective_url' => null
+                'effective_url' => null,
             ]);
         } elseif (!$response instanceof FutureArrayInterface) {
             throw new \InvalidArgumentException(

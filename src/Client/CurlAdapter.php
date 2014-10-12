@@ -107,7 +107,7 @@ class CurlAdapter
                 CURLOPT_HEADERFUNCTION   => null,
                 CURLOPT_WRITEFUNCTION    => null,
                 CURLOPT_READFUNCTION     => null,
-                CURLOPT_PROGRESSFUNCTION => null
+                CURLOPT_PROGRESSFUNCTION => null,
             ];
             curl_setopt_array($handle, $unsetValues);
             curl_reset($handle);
