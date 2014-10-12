@@ -407,7 +407,7 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'body' => 'foo'
         ]);
         $req = Server::received()[0];
-        $this->assertSame('', Core::header($req, 'Content-Type'));
+        $this->assertEquals('', Core::header($req, 'Content-Type'));
         $this->assertEquals(3, Core::header($req, 'Content-Length'));
     }
 
