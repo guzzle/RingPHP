@@ -18,14 +18,14 @@ class CoreTest extends \PHPUnit_Framework_TestCase
     public function testReturnsFirstHeaderWhenSimple()
     {
         $this->assertEquals('Bar', Core::firstHeader([
-            'headers' => ['Foo' => ['Bar', 'Baz']]
+            'headers' => ['Foo' => ['Bar', 'Baz']],
         ], 'Foo'));
     }
 
     public function testReturnsFirstHeaderWhenMultiplePerLine()
     {
         $this->assertEquals('Bar', Core::firstHeader([
-            'headers' => ['Foo' => ['Bar, Baz']]
+            'headers' => ['Foo' => ['Bar, Baz']],
         ], 'Foo'));
     }
 
@@ -43,8 +43,8 @@ class CoreTest extends \PHPUnit_Framework_TestCase
             ['bar', 'baz'],
             Core::headerLines([
                 'headers' => [
-                    'Foo' => ['bar', 'baz']
-                ]
+                    'Foo' => ['bar', 'baz'],
+                ],
             ], 'Foo')
         );
     }
@@ -55,8 +55,8 @@ class CoreTest extends \PHPUnit_Framework_TestCase
             'bar, baz',
             Core::header([
                 'headers' => [
-                    'Foo' => ['bar', 'baz']
-                ]
+                    'Foo' => ['bar', 'baz'],
+                ],
             ], 'Foo', true)
         );
     }
@@ -72,13 +72,13 @@ class CoreTest extends \PHPUnit_Framework_TestCase
             'headers' => [
                 'foo' => ['bar'],
                 'Foo' => ['bam'],
-                'baz' => ['123']
-            ]
+                'baz' => ['123'],
+            ],
         ];
 
         $this->assertSame($message, Core::removeHeader($message, 'bam'));
         $this->assertEquals([
-            'headers' => ['baz' => ['123']]
+            'headers' => ['baz' => ['123']],
         ], Core::removeHeader($message, 'foo'));
     }
 
@@ -87,7 +87,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $req = [
             'scheme'  => 'http',
             'headers' => ['host' => ['foo.com']],
-            'uri'     => '/'
+            'uri'     => '/',
         ];
 
         $this->assertEquals('http://foo.com/', Core::url($req));
@@ -108,7 +108,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
             'scheme'       => 'http',
             'headers'      => ['host' => ['foo.com']],
             'uri'          => '/',
-            'query_string' => 'foo=baz'
+            'query_string' => 'foo=baz',
         ];
 
         $this->assertEquals('http://foo.com/?foo=baz', Core::url($req));
@@ -172,7 +172,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals([
             'Foo' => ['bar', 'baz'],
             'Abc' => ['123'],
-            'Def' => ['a, b']
+            'Def' => ['a, b'],
         ], Core::headersFromLines($lines));
     }
 

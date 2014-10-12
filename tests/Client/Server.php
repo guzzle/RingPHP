@@ -171,7 +171,7 @@ class Server
             'request_port' => 8125,
             'headers'      => ['host' => ['127.0.0.1:8125']],
             'body'         => $body,
-            'client'       => $client
+            'client'       => $client,
         ];
 
         if ($body) {

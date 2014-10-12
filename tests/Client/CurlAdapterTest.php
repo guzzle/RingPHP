@@ -2,8 +2,6 @@
 namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\CurlAdapter;
-use GuzzleHttp\Stream\FnStream;
-use GuzzleHttp\Stream\Stream;
 
 class CurlAdapterTest extends \PHPUnit_Framework_TestCase
 {
@@ -32,7 +30,7 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'uri' => '/',
             'headers' => ['host' => ['localhost:123']],
-            'client' => ['timeout' => 0.001, 'connect_timeout' => 0.001]
+            'client' => ['timeout' => 0.001, 'connect_timeout' => 0.001],
         ]);
         $this->assertNull($response['status']);
         $this->assertNull($response['reason']);
@@ -54,7 +52,7 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         $response = [
             'status'  => 200,
             'headers' => ['Content-Length' => [4]],
-            'body'    => 'test'
+            'body'    => 'test',
         ];
 
         Server::enqueue([$response, $response, $response, $response]);
@@ -65,7 +63,7 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
                 $a([
                     'http_method' => 'GET',
                     'headers'     => ['host' => [Server::$host]],
-                    'client'      => ['progress' => $fn]
+                    'client'      => ['progress' => $fn],
                 ]);
             }
         };
@@ -74,8 +72,8 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'client'      => [
-                'progress' => $fn
-            ]
+                'progress' => $fn,
+            ],
         ];
 
         $a($request);
@@ -90,7 +88,7 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         $a = new CurlAdapter();
         $request = [
             'http_method' => 'GET',
-            'headers'     => ['host' => [Server::$host]]
+            'headers'     => ['host' => [Server::$host]],
         ];
         $a($request);
         $a($request);

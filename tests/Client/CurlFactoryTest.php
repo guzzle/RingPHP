@@ -42,9 +42,9 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers' => [
                 'Foo' => ['Bar'],
                 'Baz' => ['bam'],
-                'Content-Length' => [2]
+                'Content-Length' => [2],
             ],
-            'body' => 'hi'
+            'body' => 'hi',
         ]]);
 
         $stream = Stream::factory();
@@ -53,10 +53,10 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'PUT',
             'headers' => [
                 'host' => [Server::$url],
-                'Hi'   => [' 123']
+                'Hi'   => [' 123'],
             ],
             'body' => 'testing',
-            'client' => ['save_to' => $stream]
+            'client' => ['save_to' => $stream],
         ];
 
         $f = new CurlFactory();
@@ -101,7 +101,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $a = new CurlMultiAdapter();
         $response = $a([
             'http_method' => 'HEAD',
-            'headers' => ['host' => [Server::$host]]
+            'headers' => ['host' => [Server::$host]],
         ]);
         $response->wait();
         $this->assertEquals(true, $_SERVER['_curl'][CURLOPT_NOBODY]);
@@ -120,7 +120,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $a([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
-            'client'      => ['curl' => [CURLOPT_LOW_SPEED_LIMIT => 10]]
+            'client'      => ['curl' => [CURLOPT_LOW_SPEED_LIMIT => 10]],
         ]);
         $this->assertEquals(10, $_SERVER['_curl'][CURLOPT_LOW_SPEED_LIMIT]);
     }
@@ -135,7 +135,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['verify' => '/does/not/exist']
+            'client' => ['verify' => '/does/not/exist'],
         ]);
     }
 
@@ -145,7 +145,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['verify' => __FILE__]
+            'client' => ['verify' => __FILE__],
         ]);
         $this->assertEquals(__FILE__, $_SERVER['_curl'][CURLOPT_CAINFO]);
         $this->assertEquals(2, $_SERVER['_curl'][CURLOPT_SSL_VERIFYHOST]);
@@ -158,7 +158,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['verify' => true]
+            'client' => ['verify' => true],
         ]);
         $this->assertEquals(2, $_SERVER['_curl'][CURLOPT_SSL_VERIFYHOST]);
         $this->assertEquals(true, $_SERVER['_curl'][CURLOPT_SSL_VERIFYPEER]);
@@ -171,7 +171,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['verify' => false]
+            'client' => ['verify' => false],
         ]);
         $this->assertEquals(0, $_SERVER['_curl'][CURLOPT_SSL_VERIFYHOST]);
         $this->assertEquals(false, $_SERVER['_curl'][CURLOPT_SSL_VERIFYPEER]);
@@ -183,7 +183,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['proxy' => 'http://bar.com']
+            'client' => ['proxy' => 'http://bar.com'],
         ]);
         $this->assertEquals('http://bar.com', $_SERVER['_curl'][CURLOPT_PROXY]);
     }
@@ -196,8 +196,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'scheme' => 'http',
             'headers' => ['host' => ['foo.com']],
             'client' => [
-                'proxy' => ['http' => 'http://bar.com', 'https' => 'https://t']
-            ]
+                'proxy' => ['http' => 'http://bar.com', 'https' => 'https://t'],
+            ],
         ]);
         $this->assertEquals('http://bar.com', $_SERVER['_curl'][CURLOPT_PROXY]);
     }
@@ -212,7 +212,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['ssl_key' => '/does/not/exist']
+            'client' => ['ssl_key' => '/does/not/exist'],
         ]);
     }
 
@@ -222,7 +222,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['ssl_key' => __FILE__]
+            'client' => ['ssl_key' => __FILE__],
         ]);
         $this->assertEquals(__FILE__, $_SERVER['_curl'][CURLOPT_SSLKEY]);
     }
@@ -233,7 +233,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['ssl_key' => [__FILE__, 'test']]
+            'client' => ['ssl_key' => [__FILE__, 'test']],
         ]);
         $this->assertEquals(__FILE__, $_SERVER['_curl'][CURLOPT_SSLKEY]);
         $this->assertEquals('test', $_SERVER['_curl'][CURLOPT_SSLKEYPASSWD]);
@@ -249,7 +249,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['cert' => '/does/not/exist']
+            'client' => ['cert' => '/does/not/exist'],
         ]);
     }
 
@@ -259,7 +259,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['cert' => __FILE__]
+            'client' => ['cert' => __FILE__],
         ]);
         $this->assertEquals(__FILE__, $_SERVER['_curl'][CURLOPT_SSLCERT]);
     }
@@ -270,7 +270,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['cert' => [__FILE__, 'test']]
+            'client' => ['cert' => [__FILE__, 'test']],
         ]);
         $this->assertEquals(__FILE__, $_SERVER['_curl'][CURLOPT_SSLCERT]);
         $this->assertEquals('test', $_SERVER['_curl'][CURLOPT_SSLCERTPASSWD]);
@@ -286,7 +286,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $f([
             'http_method' => 'GET',
             'headers' => ['host' => ['foo.com']],
-            'client' => ['progress' => 'foo']
+            'client' => ['progress' => 'foo'],
         ]);
     }
 
@@ -299,7 +299,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $response = $a([
             'http_method' => 'HEAD',
             'headers'     => ['host' => [Server::$host]],
-            'client'      => ['debug' => $res]
+            'client'      => ['debug' => $res],
         ]);
         $response->wait();
         rewind($res);
@@ -324,8 +324,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'client'      => [
                 'progress' => function () use (&$called) {
                     $called[] = func_get_args();
-                }
-            ]
+                },
+            ],
         ]);
         $response->wait();
         $this->assertNotEmpty($called);
@@ -341,7 +341,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'status'  => 200,
             'reason'  => 'OK',
             'headers' => ['Content-Length' => [strlen($content)]],
-            'body'    => $content
+            'body'    => $content,
         ];
 
         if ($withEncoding) {
@@ -378,7 +378,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => [
                 'host'            => [Server::$host],
-                'Accept-Encoding' => ['gzip']
+                'Accept-Encoding' => ['gzip'],
             ],
             'client' => ['decode_content' => true],
         ]);
@@ -396,7 +396,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
-            'client'      => ['decode_content' => false]
+            'client'      => ['decode_content' => false],
         ]);
         $response->wait();
         $sent = Server::received()[0];
@@ -427,7 +427,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]],
             'client' => [
                 'decode_content' => true,
-                'save_to' => $stream
+                'save_to' => $stream,
             ],
         ]);
         $response->wait();
@@ -445,7 +445,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]],
             'client' => [
                 'decode_content' => true,
-                'save_to'        => $stream
+                'save_to'        => $stream,
             ],
         ]);
         $response->wait();
@@ -462,7 +462,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'headers'     => ['host' => [Server::$host]],
             'client' => [
                 'decode_content' => true,
-                'save_to'        => $tmpfile
+                'save_to'        => $tmpfile,
             ],
         ]);
         $response->wait();
@@ -479,7 +479,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $adapter([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
-            'body'        => false
+            'body'        => false,
         ]);
     }
 
@@ -496,7 +496,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
-            'body'        => $stream
+            'body'        => $stream,
         ]);
         $response->wait();
         $sent = Server::received()[0];
@@ -513,7 +513,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
-            'body'        => $iter
+            'body'        => $iter,
         ]);
         $response->wait();
         $sent = Server::received()[0];
@@ -534,9 +534,9 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => [
                 'host'           => [Server::$host],
-                'content-length' => [1000000]
+                'content-length' => [1000000],
             ],
-            'body'        => $res
+            'body'        => $res,
         ]);
         $response->wait();
         $sent = Server::received()[0];
@@ -553,7 +553,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
-            'body'        => $stream
+            'body'        => $stream,
         ]);
         $response->wait();
         $sent = Server::received()[0];
@@ -570,9 +570,9 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => [
                 'host'           => [Server::$host],
-                'content-length' => 3
+                'content-length' => 3,
             ],
-            'body' => 'foo'
+            'body' => 'foo',
         ]);
         $response->wait();
         $sent = Server::received()[0];
@@ -589,7 +589,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $response = $adapter([
             'http_method' => 'POST',
             'uri'         => '/',
-            'headers'     => ['host' => [Server::$host]]
+            'headers'     => ['host' => [Server::$host]],
         ]);
         $response->wait();
         $received = Server::received()[0];
@@ -649,7 +649,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         });
         $response = $mock([
             'http_method' => 'GET',
-            'body'        => 'test'
+            'body'        => 'test',
         ]);
         $this->assertEquals(3, $call);
         $this->assertArrayHasKey('error', $response);
@@ -668,19 +668,19 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
                 'reason' => 'OK',
                 'headers' => [
                     'Test' => ['Hello'],
-                    'Content-Length' => ['4']
+                    'Content-Length' => ['4'],
                 ],
-                'body' => 'test'
-            ]
+                'body' => 'test',
+            ],
         ]);
 
         $request = [
             'http_method' => 'PUT',
             'headers'     => [
                 'Host'   => [Server::$host],
-                'Expect' => ['100-Continue']
+                'Expect' => ['100-Continue'],
             ],
-            'body'        => 'test'
+            'body'        => 'test',
         ];
 
         $adapter = new CurlMultiAdapter();
@@ -703,7 +703,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             [
                 'err_message' => 'foo',
                 'curl' => [
-                    'errno' => CURLE_COULDNT_CONNECT
+                    'errno' => CURLE_COULDNT_CONNECT,
                 ]
             ]
         );
