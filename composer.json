@@ -14,8 +14,8 @@
         "react/promise": "~2.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.0",
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "phpunit/phpunit": "~4.0"
     },
     "suggest": {
         "ext-curl": "Guzzle will use specific adapters if cURL is present"
