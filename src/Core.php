@@ -161,6 +161,23 @@ class Core
     }
 
     /**
+     * Replaces any existing case insensitive headers with the given value.
+     *
+     * @param array  $message Message that contains 'headers'
+     * @param string $header  Header to set.
+     * @param array  $value   Value to set.
+     *
+     * @return array
+     */
+    public static function setHeader(array $message, $header, array $value)
+    {
+        $message = self::removeHeader($message, $header);
+        $message['headers'][$header] = $value;
+
+        return $message;
+    }
+
+    /**
      * Creates a URL string from a request.
      *
      * If the "url" key is present on the request, it is returned, otherwise

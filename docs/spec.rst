@@ -2,50 +2,60 @@
 Specification
 =============
 
-Guzzle-Ring uses handlers, adapters, and middleware to implement HTTP clients
-and servers.
+Guzzle-Ring applications consist of handlers, requests, responses, and
+middleware.
 
 Handlers
 --------
 
-Ring handlers constitute the core logic of a web application. Handlers are
-implemented as PHP callables that process a given request associative array to
-generate and return a ``GuzzleHttp\Ring\Future\FutureArrayInterface``.
+Handlers are implemented as a PHP ``callable`` that accept a request array and
+and return a response array (``GuzzleHttp\Ring\Future\FutureArrayInterface``).
+
+For example:
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Future\CompletedFutureArray;
+
+    $mockHandler = function (array $request) {
+        return new CompletedFutureArray([
+            'status'  => 200,
+            'headers' => ['X-Foo' => ['Bar']],
+            'body'    => 'Hello!'
+         ]);
+    };
+
+This handler returns the same response each time it is invoked. All Guzzle-Ring
+handlers must return a ``GuzzleHttp\Ring\Future\FutureArrayInterface``. Use
+``GuzzleHttp\Ring\Future\CompletedFutureArray`` when returning a response that
+has already completed.
 
 Middleware
 ----------
 
 Ring middleware augments the functionality of handlers by invoking them in the
 process of generating responses. Middleware is typically implemented as a
-higher-order function or callable that takes one or more handlers as arguments
-followed by an optional associative array of options as the last argument,
-returning a new handler with the desired compound behavior.
+higher-order function that takes one or more handlers as arguments followed by
+an optional associative array of options as the last argument, returning a new
+handler with the desired compound behavior.
 
-Adapters
---------
+Here's an example of a middleware that adds a Content-Type header to each
+request.
 
-Handlers are run via Ring adapters, which are in turn responsible for
-implementing the HTTP protocol and abstracting the handlers that they run from
-the details of the protocol.
+.. code-block:: php
 
-Client Adapters
-~~~~~~~~~~~~~~~
+    use GuzzleHttp\Ring\Client\CurlAdapter;
+    use GuzzleHttp\Ring\Core;
 
-Client adapters are implemented exactly like Handlers, except that they
-actually create and return HTTP responses after sending a request over the
-wire.
+    $contentTypeHandler = function(callable $handler, $contentType) {
+        return function (array $request) use ($handler, $contentType) {
+            return $handler(Core::setHeader('Content-Type', $contentType));
+        };
+    };
 
-Server Adapters
-~~~~~~~~~~~~~~~
-
-Server adapters are implemented as functions with two arguments: a handler and
-an associative array of options. The options map provides any needed
-configuration to the adapter, such as the port on which to run.
-
-Once initialized, adapters receive HTTP requests, parse them to construct a
-request array, and then invoke their handler with this request array as an
-argument. Once the handler returns a response array, the adapter uses it to
-construct and send an HTTP response to the client.
+    $baseAdapter = new CurlAdapter();
+    $wrappedAdapter = $contentTypeHandler($baseAdapter, 'text/html');
+    $response = $wrappedAdapter([/** request hash **/]);
 
 Request
 -------
@@ -103,36 +113,36 @@ future
 
     Set to ``true`` or omit the ``future`` option to *request* that a request
     will be completed asynchronously. Keep in mind that your request might not
-    necessarily be completed asynchronously based on the adapter you are using.
+    necessarily be completed asynchronously based on the handler you are using.
     Set the ``future`` option to ``false`` to request that a synchronous
     response be provided.
 
     You can provide a string value to specify fine-tuned future behaviors that
-    may be specific to the underlying adapters you are using. There are,
-    however, some common future options that adapters should implement if
+    may be specific to the underlying handlers you are using. There are,
+    however, some common future options that handlers should implement if
     possible.
 
     lazy
-        Requests that the adapter does not open and send the request
+        Requests that the handler does not open and send the request
         immediately, but rather only opens and sends the request once the
         future is dereferenced. This option is often useful for sending a large
-        number of requests concurrently to allow adapters to take better
+        number of requests concurrently to allow handlers to take better
         advantage of non-blocking transfers by first building up a pool of
         requests.
 
-    If an adapter does not implement or understand a provided string value,
+    If an handler does not implement or understand a provided string value,
     then the request MUST be treated as if the user provided ``true`` rather
     than the string value.
 
-    Future responses created by asynchronous adapters MUST attempt to complete
+    Future responses created by asynchronous handlers MUST attempt to complete
     any outstanding future responses when they are destructed. Asynchronous
-    adapters MAY choose to automatically complete responses when the number
-    of outstanding requests reaches an adapter-specific threshold.
+    handlers MAY choose to automatically complete responses when the number
+    of outstanding requests reaches an handler-specific threshold.
 
 Client Specific Options
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The following options are only used in ring client adapters.
+The following options are only used in ring client handlers.
 
 .. _client-options:
 
@@ -154,12 +164,12 @@ client
 
     debug
         (bool, fopen() resource) Set to true or set to a PHP stream returned by
-        fopen() to enable debug output with the adapter used to send a request.
+        fopen() to enable debug output with the handler used to send a request.
         If set to ``true``, the output is written to PHP's STDOUT. If a PHP
         ``fopen`` resource handle is provided, the output is written to the
         stream.
 
-        "Debug output" is adapter specific: different adapters will yield
+        "Debug output" is handler specific: different handlers will yield
         different output and various various level of detail. For example, when
         using cURL to transfer requests, cURL's `CURLOPT_VERBOSE <http://curl.haxx.se/libcurl/c/CURLOPT_VERBOSE.html>`_
         will be used. When using the PHP stream wrapper, `stream notifications <http://php.net/manual/en/function.stream-notification-callback.php>`_
@@ -173,7 +183,7 @@ client
 
     delay
         (int) The number of milliseconds to delay before sending the request.
-        This is often used for delaying before retrying a request. Adapters
+        This is often used for delaying before retrying a request. Handlers
         SHOULD implement this if possible, but it is not a strict requirement.
 
     progress
@@ -222,7 +232,7 @@ client
     stream
         (bool) Set to true to stream a response rather than download it all
         up-front. This option will only be utilized when the corresponding
-        adapter supports it.
+        handler supports it.
 
     timeout
         (float) Float describing the timeout of the request in seconds. Use 0 to
@@ -242,7 +252,7 @@ client
 Server Specific Options
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The following options are only used in ring server adapters.
+The following options are only used in ring server handlers.
 
 server_port
     (integer) The port on which the request is being handled. This is only
@@ -295,7 +305,7 @@ status
 
 transfer_stats
     (array) Provides an associative array of arbitrary transfer statistics if
-    provided by the underlying adapter.
+    provided by the underlying handler.
 
 version
     (string) HTTP protocol version. Defaults to ``1.1``.
