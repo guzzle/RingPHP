@@ -12,12 +12,12 @@ extensions = []
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
-project = u'Guzzle Ring'
+project = u'RingPHP'
 copyright = u'2014, Michael Dowling'
 version = '1.0.0-alpha'
 exclude_patterns = ['_build']
 
-html_title = "Guzzle Ring"
-html_short_title = "Guzzle Ring"
+html_title = "RingPHP"
+html_short_title = "RingPHP"
 html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
