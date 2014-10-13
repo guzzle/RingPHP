@@ -1,13 +1,13 @@
-===========
-Guzzle-Ring
-===========
+=======
+RingPHP
+=======
 
 Provides low level APIs used to power HTTP clients and servers through a
 simple, PHP ``callable`` that accepts a request hash and returns a future
-response hash. Guzzle-Ring supports both synchronous and asynchronous
+response hash. RingPHP supports both synchronous and asynchronous
 workflows by utilizing both futures and `promises <https://github.com/reactphp/promise>`_.
 
-Guzzle-Ring is inspired by Clojure's `Ring <https://github.com/ring-clojure/ring>`_,
+RingPHP is inspired by Clojure's `Ring <https://github.com/ring-clojure/ring>`_,
 but has been modified to accommodate clients and servers for both blocking
 and non-blocking requests.
 

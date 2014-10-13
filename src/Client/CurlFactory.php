@@ -30,13 +30,13 @@ class CurlFactory
         $this->applyMethod($request, $options);
 
         if (isset($request['client'])) {
-            $this->applyAdapterOptions($request, $options);
+            $this->applyHandlerOptions($request, $options);
         }
 
         $this->applyHeaders($request, $options);
         unset($options['_headers']);
 
-        // Add adapter options from the request's configuration options
+        // Add handler options from the request's configuration options
         if (isset($request['client']['curl'])) {
             $options = $this->applyCustomCurlOptions(
                 $request['client']['curl'],
@@ -57,7 +57,7 @@ class CurlFactory
     /**
      * Creates a response hash from a cURL result.
      *
-     * @param callable $adapter  Adapter that was used.
+     * @param callable $handler  Handler that was used.
      * @param array    $request  Request that sent.
      * @param array    $response Response hash to update.
      * @param array    $headers  Headers received during transfer.
@@ -66,7 +66,7 @@ class CurlFactory
      * @return array
      */
     public static function createResponse(
-        callable $adapter,
+        callable $handler,
         array $request,
         array $response,
         array $headers,
@@ -90,12 +90,12 @@ class CurlFactory
         }
 
         return !empty($response['curl']['errno']) || !isset($startLine[1])
-            ? self::createErrorResponse($adapter, $request, $response)
+            ? self::createErrorResponse($handler, $request, $response)
             : $response;
     }
 
     private static function createErrorResponse(
-        callable $adapter,
+        callable $handler,
         array $request,
         array $response
     ) {
@@ -112,7 +112,7 @@ class CurlFactory
             && (empty($response['curl']['errno'])
                 || $response['curl']['errno'] == 65)
         ) {
-            return self::retryFailedRewind($adapter, $request, $response);
+            return self::retryFailedRewind($handler, $request, $response);
         }
 
         $message = isset($response['err_message'])
@@ -335,7 +335,7 @@ class CurlFactory
      * This method uses a large switch rather than double-dispatch to save on
      * high overhead of calling functions in PHP.
      */
-    private function applyAdapterOptions(array $request, array &$options)
+    private function applyHandlerOptions(array $request, array &$options)
     {
         foreach ($request['client'] as $key => $value) {
             switch ($key) {
@@ -492,7 +492,7 @@ class CurlFactory
      * without an error status.
      */
     private static function retryFailedRewind(
-        callable $adapter,
+        callable $handler,
         array $request,
         array $response
     ) {
@@ -502,14 +502,14 @@ class CurlFactory
             $response['err_message'] = 'No response was received for a request '
                 . 'with no body. This could mean that you are saturating your '
                 . 'network.';
-            return self::createErrorResponse($adapter, $request, $response);
+            return self::createErrorResponse($handler, $request, $response);
         }
 
         if (!Core::rewindBody($request)) {
             $response['err_message'] = 'The connection unexpectedly failed '
                 . 'without providing an error. The request would have been '
                 . 'retried, but attempting to rewind the request body failed.';
-            return self::createErrorResponse($adapter, $request, $response);
+            return self::createErrorResponse($handler, $request, $response);
         }
 
         // Retry no more than 3 times before giving up.
@@ -521,11 +521,11 @@ class CurlFactory
                 . 'the request and subsequent retries resulted in the same '
                 . 'error. Turn on the debug option to see what went wrong. '
                 . 'See https://bugs.php.net/bug.php?id=47204 for more information.';
-            return self::createErrorResponse($adapter, $request, $response);
+            return self::createErrorResponse($handler, $request, $response);
         } else {
             $request['curl']['retries']++;
         }
 
-        return $adapter($request);
+        return $handler($request);
     }
 }

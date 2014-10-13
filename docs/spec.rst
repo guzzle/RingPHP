@@ -2,7 +2,7 @@
 Specification
 =============
 
-Guzzle-Ring applications consist of handlers, requests, responses, and
+RingPHP applications consist of handlers, requests, responses, and
 middleware.
 
 Handlers
@@ -25,40 +25,13 @@ For example:
          ]);
     };
 
-This handler returns the same response each time it is invoked. All Guzzle-Ring
+This handler returns the same response each time it is invoked. All RingPHP
 handlers must return a ``GuzzleHttp\Ring\Future\FutureArrayInterface``. Use
 ``GuzzleHttp\Ring\Future\CompletedFutureArray`` when returning a response that
 has already completed.
 
-Middleware
-----------
-
-Ring middleware augments the functionality of handlers by invoking them in the
-process of generating responses. Middleware is typically implemented as a
-higher-order function that takes one or more handlers as arguments followed by
-an optional associative array of options as the last argument, returning a new
-handler with the desired compound behavior.
-
-Here's an example of a middleware that adds a Content-Type header to each
-request.
-
-.. code-block:: php
-
-    use GuzzleHttp\Ring\Client\CurlAdapter;
-    use GuzzleHttp\Ring\Core;
-
-    $contentTypeHandler = function(callable $handler, $contentType) {
-        return function (array $request) use ($handler, $contentType) {
-            return $handler(Core::setHeader('Content-Type', $contentType));
-        };
-    };
-
-    $baseAdapter = new CurlAdapter();
-    $wrappedAdapter = $contentTypeHandler($baseAdapter, 'text/html');
-    $response = $wrappedAdapter([/** request hash **/]);
-
-Request
--------
+Requests
+--------
 
 A request array is a PHP associative array that contains the configuration
 settings need to send a request.
@@ -266,8 +239,8 @@ remote_addr
     (string) The IP address of the client or the last proxy that sent the
     request. Required when using a Ring server.
 
-Response
---------
+Responses
+---------
 
 A response is an array-like object that implements
 ``GuzzleHttp\Ring\Future\FutureArrayInterface``. Responses contain the
@@ -309,3 +282,30 @@ transfer_stats
 
 version
     (string) HTTP protocol version. Defaults to ``1.1``.
+
+Middleware
+----------
+
+Ring middleware augments the functionality of handlers by invoking them in the
+process of generating responses. Middleware is typically implemented as a
+higher-order function that takes one or more handlers as arguments followed by
+an optional associative array of options as the last argument, returning a new
+handler with the desired compound behavior.
+
+Here's an example of a middleware that adds a Content-Type header to each
+request.
+
+.. code-block:: php
+
+    use GuzzleHttp\Ring\Client\CurlHandler;
+    use GuzzleHttp\Ring\Core;
+
+    $contentTypeHandler = function(callable $handler, $contentType) {
+        return function (array $request) use ($handler, $contentType) {
+            return $handler(Core::setHeader('Content-Type', $contentType));
+        };
+    };
+
+    $baseHandler = new CurlHandler();
+    $wrappedHandler = $contentTypeHandler($baseHandler, 'text/html');
+    $response = $wrappedHandler([/** request hash **/]);

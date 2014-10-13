@@ -3,7 +3,7 @@ Client Middleware
 =================
 
 Middleware intercepts requests before they are sent over the wire and can be
-used to add functionality to adapters.
+used to add functionality to handlers.
 
 Modifying Requests
 ------------------
@@ -15,9 +15,9 @@ composed behavior.
 
 .. code-block:: php
 
-    use GuzzleHttp\Ring\Client\CurlAdapter;
+    use GuzzleHttp\Ring\Client\CurlHandler;
 
-    $adapter = new CurlAdapter();
+    $handler = new CurlHandler();
 
     $addHeaderHandler = function (callable $handler, array $headers = []) {
         return function (array $request) use ($handler, $headers) {
@@ -32,12 +32,12 @@ composed behavior.
     };
 
     // Create a new handler that adds headers to each request.
-    $adapter = $addHeaderHandler($adapter, [
+    $handler = $addHeaderHandler($handler, [
         'X-AddMe'       => 'hello',
         'Authorization' => 'Basic xyz'
     ]);
 
-    $response = $adapter([
+    $response = $handler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['httpbin.org']
     ]);
@@ -46,7 +46,7 @@ Modifying Responses
 -------------------
 
 You can change a response as it's returned from a middleware. Remember that
-responses returned from an adapter (including middleware) must implement
+responses returned from an handler (including middleware) must implement
 ``GuzzleHttp\Ring\Future\FutureArrayInterface``. In order to be a good citizen,
 you should not expect that the responses returned through your middleware will
 be completed synchronously. Instead, you should use the
@@ -63,9 +63,9 @@ incoming request and using the ``Core::proxy`` function.
 .. code-block:: php
 
     use GuzzleHttp\Ring\Core;
-    use GuzzleHttp\Ring\Client\CurlAdapter;
+    use GuzzleHttp\Ring\Client\CurlHandler;
 
-    $adapter = new CurlAdapter();
+    $handler = new CurlHandler();
 
     $responseHeaderHandler = function (callable $handler, array $headers) {
         return function (array $request) use ($handler, $headers) {
@@ -83,9 +83,9 @@ incoming request and using the ``Core::proxy`` function.
     };
 
     // Create a new handler that adds headers to each response.
-    $adapter = $responseHeaderHandler($adapter, ['X-Header' => 'hello!']);
+    $handler = $responseHeaderHandler($handler, ['X-Header' => 'hello!']);
 
-    $response = $adapter([
+    $response = $handler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['httpbin.org']
     ]);
@@ -95,37 +95,37 @@ incoming request and using the ``Core::proxy`` function.
 Built-In Middleware
 -------------------
 
-Guzzle-Ring comes with a few basic client middlewares that modify requests
+RingPHP comes with a few basic client middlewares that modify requests
 and responses.
 
 Streaming Middleware
 ~~~~~~~~~~~~~~~~~~~~
 
 If you want to send all requests with the ``streaming`` option to a specific
-adapter but other requests to a different adapter, then use the streaming
+handler but other requests to a different handler, then use the streaming
 middleware.
 
 .. code-block:: php
 
-    use GuzzleHttp\Ring\Client\CurlAdapter;
-    use GuzzleHttp\Ring\Client\StreamAdapter;
+    use GuzzleHttp\Ring\Client\CurlHandler;
+    use GuzzleHttp\Ring\Client\StreamHandler;
     use GuzzleHttp\Ring\Client\Middleware;
 
-    $defaultAdapter = new CurlAdapter();
-    $streamingAdapter = new StreamAdapter();
+    $defaultHandler = new CurlHandler();
+    $streamingHandler = new StreamHandler();
     $streamingHandler = Middleware::wrapStreaming(
-        $defaultAdapter,
-        $streamingAdapter
+        $defaultHandler,
+        $streamingHandler
     );
 
-    // Send the request using the streaming adapter.
+    // Send the request using the streaming handler.
     $response = $streamingHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com'],
         'stream'      => true
     ]);
 
-    // Send the request using the default adapter.
+    // Send the request using the default handler.
     $response = $streamingHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com']
@@ -135,29 +135,29 @@ Future Middleware
 ~~~~~~~~~~~~~~~~~
 
 If you want to send all requests with the ``future`` option to a specific
-adapter but other requests to a different adapter, then use the future
+handler but other requests to a different handler, then use the future
 middleware.
 
 .. code-block:: php
 
-    use GuzzleHttp\Ring\Client\CurlAdapter;
-    use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+    use GuzzleHttp\Ring\Client\CurlHandler;
+    use GuzzleHttp\Ring\Client\CurlMultiHandler;
     use GuzzleHttp\Ring\Client\Middleware;
 
-    $defaultAdapter = new CurlAdapter();
-    $futureAdapter = new CurlMultiAdapter();
+    $defaultHandler = new CurlHandler();
+    $futureHandler = new CurlMultiHandler();
     $futureHandler = Middleware::wrapFuture(
-        $defaultAdapter,
-        $futureAdapter
+        $defaultHandler,
+        $futureHandler
     );
 
-    // Send the request using the blocking CurlAdapter.
+    // Send the request using the blocking CurlHandler.
     $response = $futureHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com']
     ]);
 
-    // Send the request using the non-blocking CurlMultiAdapter.
+    // Send the request using the non-blocking CurlMultiHandler.
     $response = $futureHandler([
         'http_method' => 'GET',
         'headers'     => ['Host' => ['www.google.com'],

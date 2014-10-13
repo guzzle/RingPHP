@@ -2,7 +2,7 @@
 Futures
 =======
 
-Futures represent a computation that may have not yet completed. Guzzle-Ring
+Futures represent a computation that may have not yet completed. RingPHP
 uses hybrid of futures and promises to provide a consistent API that can be
 used for both blocking and non-blocking consumers.
 
@@ -16,7 +16,7 @@ use this API when you do not wish to block.
 
 .. code-block:: php
 
-    use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+    use GuzzleHttp\Ring\Client\CurlMultiHandler;
 
     $request = [
         'http_method' => 'GET',
@@ -24,7 +24,7 @@ use this API when you do not wish to block.
         'headers'     => ['host' => ['httpbin.org']]
     ];
 
-    $response = $adapter($request);
+    $response = $handler($request);
 
     // Use the then() method to use the promise API of the future.
     $response->then(function ($response) {
@@ -36,7 +36,7 @@ You can get the promise used by a future, an instance of
 
 .. code-block:: php
 
-    $response = $adapter($request);
+    $response = $handler($request);
     $promise = $response->promise();
     $promise->then(function ($response) {
         echo $response['status'];
@@ -58,9 +58,9 @@ cancelled, which stops the computation if possible.
 
 .. code-block:: php
 
-    use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+    use GuzzleHttp\Ring\Client\CurlMultiHandler;
 
-    $response = $adapter([
+    $response = $handler([
         'http_method' => 'GET',
         'uri'         => '/',
         'headers'     => ['host' => ['httpbin.org']]
@@ -78,17 +78,17 @@ a normal value will implicitly trigger the ``wait()`` function.
 Future Responses
 ----------------
 
-Guzzle-Ring uses futures to return asynchronous responses immediately. Client
-adapters always return future responses that implement
+RingPHP uses futures to return asynchronous responses immediately. Client
+handlers always return future responses that implement
 ``GuzzleHttp\Ring\Future\ArrayFutureInterface``. These future responses act
 just like normal PHP associative arrays for blocking access and provide a
 promise interface for non-blocking access.
 
 .. code-block:: php
 
-    use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+    use GuzzleHttp\Ring\Client\CurlMultiHandler;
 
-    $adapter = new CurlMultiAdapter();
+    $handler = new CurlMultiHandler();
 
     $request = [
         'http_method'  => 'GET',
@@ -96,7 +96,7 @@ promise interface for non-blocking access.
         'headers'      => ['Host' => ['www.google.com']]
     ];
 
-    $response = $adapter($request);
+    $response = $handler($request);
 
     // Use the promise API for non-blocking access to the response. The actual
     // response value will be delivered to the promise.
@@ -112,15 +112,15 @@ promise interface for non-blocking access.
 
 .. important::
 
-    Futures that are not completed by the time the underlying adapter is
-    destructed will be completed when the adapter is shutting down.
+    Futures that are not completed by the time the underlying handler is
+    destructed will be completed when the handler is shutting down.
 
 Cancelling
 ----------
 
 Futures can be cancelled if they have not already been dereferenced.
 
-Guzzle-Ring futures are typically implemented with the
+RingPHP futures are typically implemented with the
 ``GuzzleHttp\Ring\Future\BaseFutureTrait``. This trait provides the cancellation
 functionality that should be common to most implementations. Cancelling a
 future response will try to prevent the request from sending over the wire.

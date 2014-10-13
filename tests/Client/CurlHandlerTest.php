@@ -1,9 +1,9 @@
 <?php
 namespace GuzzleHttp\Tests\Ring\Client;
 
-use GuzzleHttp\Ring\Client\CurlAdapter;
+use GuzzleHttp\Ring\Client\CurlHandler;
 
-class CurlAdapterTest extends \PHPUnit_Framework_TestCase
+class CurlHandlerTest extends \PHPUnit_Framework_TestCase
 {
     protected function setUp()
     {
@@ -12,21 +12,21 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    protected function getAdapter($factory = null, $options = [])
+    protected function getHandler($factory = null, $options = [])
     {
-        return new CurlAdapter($options);
+        return new CurlHandler($options);
     }
 
     public function testCanSetMaxHandles()
     {
-        $a = new CurlAdapter(['max_handles' => 10]);
+        $a = new CurlHandler(['max_handles' => 10]);
         $this->assertEquals(10, $this->readAttribute($a, 'maxHandles'));
     }
 
     public function testCreatesCurlErrors()
     {
-        $adapter = new CurlAdapter();
-        $response = $adapter([
+        $handler = new CurlHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'uri' => '/',
             'headers' => ['host' => ['localhost:123']],
@@ -56,7 +56,7 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         ];
 
         Server::enqueue([$response, $response, $response, $response]);
-        $a = new CurlAdapter(['max_handles' => 2]);
+        $a = new CurlHandler(['max_handles' => 2]);
 
         $fn = function () use (&$calls, $a, &$fn) {
             if (++$calls < 4) {
@@ -85,7 +85,7 @@ class CurlAdapterTest extends \PHPUnit_Framework_TestCase
         Server::flush();
         $response = ['status' => 200];
         Server::enqueue([$response, $response]);
-        $a = new CurlAdapter();
+        $a = new CurlHandler();
         $request = [
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],

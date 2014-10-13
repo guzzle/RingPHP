@@ -1,7 +1,7 @@
 <?php
 namespace GuzzleHttp\Tests\Ring\Client;
 
-use GuzzleHttp\Ring\Client\StreamAdapter;
+use GuzzleHttp\Ring\Client\StreamHandler;
 use GuzzleHttp\Ring\Core;
 
 /**
@@ -40,7 +40,7 @@ class Server
      * on the server will return queued responses in FIFO order.
      *
      * @param array $responses An array of responses. The shape of a response
-     *                         is the shape described in the Guzzle-Ring spec.
+     *                         is the shape described in the RingPHP spec.
      * @throws \Exception
      */
     public static function enqueue(array $responses)
@@ -64,7 +64,7 @@ class Server
     }
 
     /**
-     * Get all of the received requests as a Guzzle-Ring request structure.
+     * Get all of the received requests as a RingPHP request structure.
      *
      * @return array
      * @throws \RuntimeException
@@ -163,7 +163,7 @@ class Server
         $body = null,
         array $client = []
     ) {
-        $adapter = new StreamAdapter();
+        $handler = new StreamHandler();
 
         $request = [
             'http_method'  => $method,
@@ -178,6 +178,6 @@ class Server
             $request['headers']['content-length'] = [strlen($body)];
         }
 
-        return $adapter($request);
+        return $handler($request);
     }
 }

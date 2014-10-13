@@ -3,15 +3,15 @@ namespace GuzzleHttp\Tests\Ring\Client;
 
 use GuzzleHttp\Ring\Client\ClientUtils;
 use GuzzleHttp\Ring\Core;
-use GuzzleHttp\Ring\Client\StreamAdapter;
+use GuzzleHttp\Ring\Client\StreamHandler;
 
-class StreamAdapterTest extends \PHPUnit_Framework_TestCase
+class StreamHandlerTest extends \PHPUnit_Framework_TestCase
 {
     public function testReturnsResponseForSuccessfulRequest()
     {
         $this->queueRes();
-        $adapter = new StreamAdapter();
-        $response = $adapter([
+        $handler = new StreamHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'uri'         => '/',
             'headers'     => [
@@ -35,8 +35,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testAddsErrorToResponse()
     {
-        $adapter = new StreamAdapter();
-        $result = $adapter([
+        $handler = new StreamHandler();
+        $result = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => ['localhost:123']],
             'client'      => ['timeout' => 0.01],
@@ -53,8 +53,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testEnsuresTheHttpProtocol()
     {
-        $adapter = new StreamAdapter();
-        $result = $adapter([
+        $handler = new StreamHandler();
+        $result = $handler([
             'http_method' => 'GET',
             'url'         => 'ftp://localhost:123',
         ]);
@@ -68,8 +68,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
     public function testStreamAttributeKeepsStreamOpen()
     {
         $this->queueRes();
-        $adapter = new StreamAdapter();
-        $response = $adapter([
+        $handler = new StreamHandler();
+        $response = $handler([
             'http_method'  => 'PUT',
             'uri'          => '/foo',
             'query_string' => 'baz=bar',
@@ -101,8 +101,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
     public function testDrainsResponseIntoTempStream()
     {
         $this->queueRes();
-        $adapter = new StreamAdapter();
-        $response = $adapter([
+        $handler = new StreamHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'uri'         => '/',
             'headers'     => ['host' => [Server::$host]],
@@ -117,8 +117,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
     {
         $r = fopen('php://temp', 'r+');
         $this->queueRes();
-        $adapter = new StreamAdapter();
-        $response = $adapter([
+        $handler = new StreamHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'uri' => '/',
             'headers' => ['host' => [Server::$host]],
@@ -135,8 +135,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
     {
         $tmpfname = tempnam('/tmp', 'save_to_path');
         $this->queueRes();
-        $adapter = new StreamAdapter();
-        $response = $adapter([
+        $handler = new StreamHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'uri' => '/',
             'headers' => ['host' => [Server::$host]],
@@ -166,8 +166,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             ],
         ]);
 
-        $adapter = new StreamAdapter();
-        $response = $adapter([
+        $handler = new StreamHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'uri'         => '/',
@@ -192,8 +192,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             ],
         ]);
 
-        $adapter = new StreamAdapter();
-        $response = $adapter([
+        $handler = new StreamHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'uri'         => '/',
@@ -205,9 +205,9 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
     protected function getSendResult(array $opts)
     {
         $this->queueRes();
-        $adapter = new StreamAdapter();
+        $handler = new StreamHandler();
         $opts['stream'] = true;
-        return $adapter([
+        return $handler([
             'http_method' => 'GET',
             'uri'         => '/',
             'headers'     => ['host' => [Server::$host]],
@@ -399,8 +399,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
     public function testDoesNotAddContentTypeByDefault()
     {
         $this->queueRes();
-        $adapter = new StreamAdapter();
-        $adapter([
+        $handler = new StreamHandler();
+        $handler([
             'http_method' => 'PUT',
             'uri' => '/',
             'headers' => ['host' => [Server::$host], 'content-length' => [3]],
@@ -451,8 +451,8 @@ class StreamAdapterTest extends \PHPUnit_Framework_TestCase
             'body'        => 'test',
         ];
 
-        $adapter = new StreamAdapter();
-        $response = $adapter($request);
+        $handler = new StreamHandler();
+        $response = $handler($request);
         $this->assertEquals(200, $response['status']);
         $this->assertEquals('OK', $response['reason']);
         $this->assertEquals(['Hello'], $response['headers']['Test']);

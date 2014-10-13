@@ -6,7 +6,7 @@ use GuzzleHttp\Ring\Future\FutureArrayInterface;
 use GuzzleHttp\Ring\Future\FutureArray;
 
 /**
- * Provides core functionality of Ring adapters and middleware.
+ * Provides core functionality of Ring handlers and middleware.
  */
 class Core
 {

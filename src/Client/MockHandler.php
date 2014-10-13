@@ -6,9 +6,9 @@ use GuzzleHttp\Ring\Future\CompletedFutureArray;
 use GuzzleHttp\Ring\Future\FutureArrayInterface;
 
 /**
- * Ring adapter that returns a canned response or evaluated function result.
+ * Ring handler that returns a canned response or evaluated function result.
  */
-class MockAdapter
+class MockHandler
 {
     /** @var callable|array|FutureArrayInterface */
     private $result;

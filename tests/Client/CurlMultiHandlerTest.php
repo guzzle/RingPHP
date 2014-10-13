@@ -1,14 +1,14 @@
 <?php
 namespace GuzzleHttp\Tests\Ring\Client;
 
-use GuzzleHttp\Ring\Client\CurlMultiAdapter;
+use GuzzleHttp\Ring\Client\CurlMultiHandler;
 
-class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
+class CurlMultiHandlerTest extends \PHPUnit_Framework_TestCase
 {
     public function testSendsRequest()
     {
         Server::enqueue([['status' => 200]]);
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $response = $a([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
@@ -28,7 +28,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
     public function testCreatesErrorResponses()
     {
         $url = 'http://localhost:123/';
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $response = $a([
             'http_method' => 'GET',
             'headers'     => ['host' => ['localhost:123']],
@@ -54,7 +54,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
     public function testSendsFuturesWhenDestructed()
     {
         Server::enqueue([['status' => 200]]);
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $response = $a([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
@@ -66,13 +66,13 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testCanSetMaxHandles()
     {
-        $a = new CurlMultiAdapter(['max_handles' => 2]);
+        $a = new CurlMultiHandler(['max_handles' => 2]);
         $this->assertEquals(2, $this->readAttribute($a, 'maxHandles'));
     }
 
     public function testCanSetSelectTimeout()
     {
-        $a = new CurlMultiAdapter(['select_timeout' => 2]);
+        $a = new CurlMultiHandler(['select_timeout' => 2]);
         $this->assertEquals(2, $this->readAttribute($a, 'selectTimeout'));
     }
 
@@ -86,7 +86,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         $response = ['status' => 200];
         Server::flush();
         Server::enqueue([$response, $response, $response]);
-        $a = new CurlMultiAdapter(['max_handles' => 3]);
+        $a = new CurlMultiHandler(['max_handles' => 3]);
         for ($i = 0; $i < 5; $i++) {
             $responses[] = $a($request);
         }
@@ -100,7 +100,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         Server::flush();
         $response = ['status' => 200];
         Server::enqueue(array_fill_keys(range(0, 10), $response));
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $responses = [];
 
         for ($i = 0; $i < 10; $i++) {
@@ -124,7 +124,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
     {
         Server::flush();
         Server::enqueue([['status' => 200]]);
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $response = $a([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
@@ -137,7 +137,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
     {
         Server::flush();
         Server::enqueue([['status' => 200]]);
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $expected = microtime(true) + (100 / 1000);
         $response = $a([
             'http_method' => 'GET',
@@ -157,7 +157,7 @@ class CurlMultiAdapterTest extends \PHPUnit_Framework_TestCase
         ];
         Server::flush();
         Server::enqueue([['status' => 202]]);
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $response = $a($request);
         $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
         $this->assertEquals(202, $response['status']);

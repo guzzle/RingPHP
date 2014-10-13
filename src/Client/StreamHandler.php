@@ -11,9 +11,9 @@ use GuzzleHttp\Stream\Stream;
 use GuzzleHttp\Stream\Utils;
 
 /**
- * Guzzle-Ring client adapter that uses PHP's HTTP stream wrapper.
+ * RingPHP client handler that uses PHP's HTTP stream wrapper.
  */
-class StreamAdapter
+class StreamHandler
 {
     private $options;
 
@@ -234,7 +234,7 @@ class StreamAdapter
         $body = Core::body($request);
         if (isset($body)) {
             $context['http']['content'] = $body;
-            // Prevent the HTTP adapter from adding a Content-Type header.
+            // Prevent the HTTP handler from adding a Content-Type header.
             if (!Core::hasHeader($request, 'Content-Type')) {
                 $context['http']['header'][] .= "Content-Type:";
             }

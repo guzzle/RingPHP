@@ -1,15 +1,15 @@
 <?php
 namespace GuzzleHttp\Tests\Ring\Client;
 
-use GuzzleHttp\Ring\Client\MockAdapter;
+use GuzzleHttp\Ring\Client\MockHandler;
 use GuzzleHttp\Ring\Future\FutureArray;
 use React\Promise\Deferred;
 
-class MockAdapterTest extends \PHPUnit_Framework_TestCase
+class MockHandlerTest extends \PHPUnit_Framework_TestCase
 {
     public function testReturnsArray()
     {
-        $mock = new MockAdapter(['status' => 200]);
+        $mock = new MockHandler(['status' => 200]);
         $response = $mock([]);
         $this->assertEquals(200, $response['status']);
         $this->assertEquals([], $response['headers']);
@@ -27,7 +27,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
                 $deferred->resolve(['status' => 200]);
             }
         );
-        $mock = new MockAdapter($future);
+        $mock = new MockHandler($future);
         $response = $mock([]);
         $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
         $this->assertEquals(200, $response['status']);
@@ -42,7 +42,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
                 $deferred->resolve(['status' => 200]);
             }
         );
-        $mock = new MockAdapter($future);
+        $mock = new MockHandler($future);
         $response = $mock([]);
         $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
         $this->assertEquals(200, $response['status']);
@@ -67,7 +67,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
                 return true;
             }
         );
-        $mock = new MockAdapter($future);
+        $mock = new MockHandler($future);
         $response = $mock([]);
         $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $response);
         $response->cancel();
@@ -80,7 +80,7 @@ class MockAdapterTest extends \PHPUnit_Framework_TestCase
      */
     public function testEnsuresMockIsValid()
     {
-        $mock = new MockAdapter('foo');
+        $mock = new MockHandler('foo');
         $mock([]);
     }
 }

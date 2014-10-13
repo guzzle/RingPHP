@@ -6,7 +6,7 @@ use GuzzleHttp\Ring\Future\CompletedFutureArray;
 
 class MiddlewareTest extends \PHPUnit_Framework_TestCase
 {
-    public function testFutureCallsDefaultAdapter()
+    public function testFutureCallsDefaultHandler()
     {
         $future = new CompletedFutureArray(['status' => 200]);
         $calledA = false;
@@ -22,7 +22,7 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($calledB);
     }
 
-    public function testFutureCallsStreamingAdapter()
+    public function testFutureCallsStreamingHandler()
     {
         $future = new CompletedFutureArray(['status' => 200]);
         $calledA = false;
@@ -39,7 +39,7 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($future, $result);
     }
 
-    public function testStreamingCallsDefaultAdapter()
+    public function testStreamingCallsDefaultHandler()
     {
         $calledA = false;
         $a = function (array $req) use (&$calledA) { $calledA = true; };
@@ -51,7 +51,7 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($calledB);
     }
 
-    public function testStreamingCallsStreamingAdapter()
+    public function testStreamingCallsStreamingHandler()
     {
         $calledA = false;
         $a = function (array $req) use (&$calledA) { $calledA = true; };

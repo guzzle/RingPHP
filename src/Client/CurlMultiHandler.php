@@ -7,14 +7,14 @@ use React\Promise\Deferred;
 /**
  * Returns an asynchronous response using curl_multi_* functions.
  *
- * This adapter supports future responses and the "delay" request client
+ * This handler supports future responses and the "delay" request client
  * option that can be used to delay before sending a request.
  *
- * When using the CurlMultiAdapter, custom curl options can be specified as an
+ * When using the CurlMultiHandler, custom curl options can be specified as an
  * associative array of curl option constants mapping to values in the
  * **curl** key of the "client" key of the request.
  */
-class CurlMultiAdapter
+class CurlMultiHandler
 {
     /** @var callable */
     private $factory;
@@ -26,7 +26,7 @@ class CurlMultiAdapter
     private $maxHandles;
 
     /**
-     * This adapter accepts the following options:
+     * This handler accepts the following options:
      *
      * - mh: An optional curl_multi resource
      * - handle_factory: An optional callable used to generate curl handle

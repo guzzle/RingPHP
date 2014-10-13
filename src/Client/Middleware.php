@@ -10,14 +10,14 @@ namespace GuzzleHttp\Ring\Client;
 class Middleware
 {
     /**
-     * Sends future requests to a future compatible adapter while sending all
-     * other requests to a default adapter.
+     * Sends future requests to a future compatible handler while sending all
+     * other requests to a default handler.
      *
      * When the "future" option is not provided on a request, any future responses
      * are automatically converted to synchronous responses and block.
      *
-     * @param callable $default Adapter used for non-streaming responses
-     * @param callable $future  Adapter used for future responses
+     * @param callable $default Handler used for non-streaming responses
+     * @param callable $future  Handler used for future responses
      *
      * @return callable Returns the composed handler.
      */
@@ -33,15 +33,15 @@ class Middleware
     }
 
     /**
-     * Sends streaming requests to a streaming compatible adapter while sendin
-     * all other requests to a default adapter.
+     * Sends streaming requests to a streaming compatible handler while sendin
+     * all other requests to a default handler.
      *
      * This, for example, could be useful for taking advantage of the
      * performance benefits of curl while still supporting true streaming
-     * through the StreamAdapter.
+     * through the StreamHandler.
      *
-     * @param callable $default   Adapter used for non-streaming responses
-     * @param callable $streaming Adapter used for streaming responses
+     * @param callable $default   Handler used for non-streaming responses
+     * @param callable $streaming Handler used for streaming responses
      *
      * @return callable Returns the composed handler.
      */

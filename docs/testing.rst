@@ -2,7 +2,7 @@
 Testing
 =======
 
-Guzzle-Ring tests client adapters using `PHPUnit <https://phpunit.de/>`_ and a
+RingPHP tests client handlers using `PHPUnit <https://phpunit.de/>`_ and a
 built-in node.js web server.
 
 Running Tests
@@ -21,8 +21,8 @@ The tests are also run on Travis-CI on each commit: https://travis-ci.org/guzzle
 Test Server
 -----------
 
-Testing client adapters usually involves actually sending HTTP requests.
-Guzzle-Ring provides a node.js web server that returns canned responses and
+Testing client handlers usually involves actually sending HTTP requests.
+RingPHP provides a node.js web server that returns canned responses and
 keep a list of the requests that have been received. The server can then
 be queried to get a list of the requests that were sent by the client so that
 you can ensure that the client serialized and transferred requests as intended.
@@ -36,7 +36,7 @@ control the server.
 
 .. code-block:: php
 
-    use GuzzleHttp\Ring\Client\StreamAdapter;
+    use GuzzleHttp\Ring\Client\StreamHandler;
     use GuzzleHttp\Tests\Ring\Client\Server;
 
     // First return a 200 followed by a 404 response.
@@ -45,9 +45,9 @@ control the server.
         ['status' => 404]
     ]);
 
-    $adapter = new StreamAdapter();
+    $handler = new StreamHandler();
 
-    $response = $adapter([
+    $response = $handler([
         'http_method' => 'GET',
         'headers'     => ['host' => [Server::$host]],
         'uri'         => '/'
@@ -55,7 +55,7 @@ control the server.
 
     assert(200 == $response['status']);
 
-    $response = $adapter([
+    $response = $handler([
         'http_method' => 'HEAD',
         'headers'     => ['host' => [Server::$host]],
         'uri'         => '/'

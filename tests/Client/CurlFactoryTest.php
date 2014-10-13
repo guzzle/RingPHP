@@ -14,8 +14,8 @@ namespace GuzzleHttp\Ring\Client {
 namespace GuzzleHttp\Tests\Ring\Client {
 
 use GuzzleHttp\Ring\Client\CurlFactory;
-use GuzzleHttp\Ring\Client\CurlMultiAdapter;
-use GuzzleHttp\Ring\Client\MockAdapter;
+use GuzzleHttp\Ring\Client\CurlMultiHandler;
+use GuzzleHttp\Ring\Client\MockHandler;
 use GuzzleHttp\Ring\Core;
 use GuzzleHttp\Stream\FnStream;
 use GuzzleHttp\Stream\NoSeekStream;
@@ -98,7 +98,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     {
         Server::flush();
         Server::enqueue([['status' => 200]]);
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $response = $a([
             'http_method' => 'HEAD',
             'headers' => ['host' => [Server::$host]],
@@ -116,7 +116,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     {
         Server::flush();
         Server::enqueue([['status' => 200]]);
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $a([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
@@ -295,7 +295,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $res = fopen('php://memory', 'r+');
         Server::flush();
         Server::enqueue([['status' => 200]]);
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $response = $a([
             'http_method' => 'HEAD',
             'headers'     => ['host' => [Server::$host]],
@@ -316,7 +316,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     {
         Server::flush();
         Server::enqueue([['status' => 200]]);
-        $a = new CurlMultiAdapter();
+        $a = new CurlMultiHandler();
         $called = [];
         $response = $a([
             'http_method' => 'HEAD',
@@ -357,8 +357,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     public function testDecodesGzippedResponses()
     {
         $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'client'      => ['decode_content' => true],
@@ -373,8 +373,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     public function testDecodesGzippedResponsesWithHeader()
     {
         $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => [
                 'host'            => [Server::$host],
@@ -392,8 +392,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     public function testDoesNotForceDecode()
     {
         $content = $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'client'      => ['decode_content' => false],
@@ -409,8 +409,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidatesSaveTo()
     {
-        $adapter = new CurlMultiAdapter();
-        $adapter([
+        $handler = new CurlMultiHandler();
+        $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'client'      => ['save_to' => true],
@@ -421,8 +421,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $stream = fopen('php://memory', 'r+');
         $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'client' => [
@@ -439,8 +439,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $stream = Stream::factory();
         $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'client' => [
@@ -456,8 +456,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $tmpfile = tempnam(sys_get_temp_dir(), 'testfile');
         $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'client' => [
@@ -475,8 +475,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidatesBody()
     {
-        $adapter = new CurlMultiAdapter();
-        $adapter([
+        $handler = new CurlMultiHandler();
+        $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'body'        => false,
@@ -492,8 +492,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             }
         ]);
         $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'body'        => $stream,
@@ -509,8 +509,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $iter = new \ArrayIterator(['f', 'o', 'o']);
         $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'body'        => $iter,
@@ -529,8 +529,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         fwrite($res, $data);
         rewind($res);
         $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => [
                 'host'           => [Server::$host],
@@ -549,8 +549,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $stream = Stream::factory('foo');
         $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => ['host' => [Server::$host]],
             'body'        => $stream,
@@ -565,8 +565,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     public function testDoesNotAddMultipleContentLengthHeaders()
     {
         $this->addDecodeResponse();
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'GET',
             'headers'     => [
                 'host'           => [Server::$host],
@@ -585,8 +585,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     {
         Server::flush();
         Server::enqueue([['status' => 200]]);
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter([
+        $handler = new CurlMultiHandler();
+        $response = $handler([
             'http_method' => 'POST',
             'uri'         => '/',
             'headers'     => ['host' => [Server::$host]],
@@ -622,9 +622,9 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testRetriesWhenBodyCanBeRewound()
     {
-        $callAdapter = $called = false;
-        $res = CurlFactory::createResponse(function () use (&$callAdapter) {
-            $callAdapter = true;
+        $callHandler = $called = false;
+        $res = CurlFactory::createResponse(function () use (&$callHandler) {
+            $callHandler = true;
             return ['status' => 200];
         }, [
             'body' => FnStream::decorate(Stream::factory('test'), [
@@ -635,7 +635,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             ])
         ], [], [], null);
 
-        $this->assertTrue($callAdapter);
+        $this->assertTrue($callHandler);
         $this->assertTrue($called);
         $this->assertEquals('200', $res['status']);
     }
@@ -643,7 +643,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
     public function testFailsWhenRetryMoreThanThreeTimes()
     {
         $call = 0;
-        $mock = new MockAdapter(function (array $request) use (&$mock, &$call) {
+        $mock = new MockHandler(function (array $request) use (&$mock, &$call) {
             $call++;
             return CurlFactory::createResponse($mock, $request, [], [], null);
         });
@@ -683,8 +683,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'body'        => 'test',
         ];
 
-        $adapter = new CurlMultiAdapter();
-        $response = $adapter($request)->wait();
+        $handler = new CurlMultiHandler();
+        $response = $handler($request)->wait();
         $this->assertEquals(200, $response['status']);
         $this->assertEquals('OK', $response['reason']);
         $this->assertEquals(['Hello'], $response['headers']['Test']);

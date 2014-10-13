@@ -5,15 +5,15 @@ use GuzzleHttp\Ring\Future\CompletedFutureArray;
 use GuzzleHttp\Ring\Core;
 
 /**
- * HTTP adapter that uses cURL easy handles as a transport layer.
+ * HTTP handler that uses cURL easy handles as a transport layer.
  *
  * Requires PHP 5.5+
  *
- * When using the CurlAdapter, custom curl options can be specified as an
+ * When using the CurlHandler, custom curl options can be specified as an
  * associative array of curl option constants mapping to values in the
  * **curl** key of the "client" key of the request.
  */
-class CurlAdapter
+class CurlHandler
 {
     /** @var callable */
     private $factory;
@@ -35,7 +35,7 @@ class CurlAdapter
      *   array of the curl handle, headers resource, and body resource.
      * - max_handles: Maximum number of idle handles (defaults to 5).
      *
-     * @param array $options Array of options to use with the adapter
+     * @param array $options Array of options to use with the handler
      */
     public function __construct(array $options = [])
     {
