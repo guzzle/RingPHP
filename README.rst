@@ -11,4 +11,4 @@ RingPHP is inspired by Clojure's `Ring <https://github.com/ring-clojure/ring>`_,
 but has been modified to accommodate clients and servers for both blocking
 and non-blocking requests.
 
-See http://guzzle-ring.readthedocs.org/ for the full online documentation.
+See http://ringphp.readthedocs.org/ for the full online documentation.
