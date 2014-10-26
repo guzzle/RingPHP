@@ -709,6 +709,45 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         );
         $this->assertInstanceOf('GuzzleHttp\Ring\Exception\ConnectException', $response['error']);
     }
+
+    public function testParsesLastResponseOnly()
+    {
+        $response1  = [
+            'status'  => 301,
+            'headers' => [
+                'Content-Length' => ['0'],
+                'Location' => ['/foo']
+            ]
+        ];
+
+        $response2 = [
+            'status'  => 200,
+            'headers' => [
+                'Content-Length' => ['0'],
+                'Foo' => ['bar']
+            ]
+        ];
+
+        Server::flush();
+        Server::enqueue([$response1, $response2]);
+
+        $a = new CurlMultiHandler();
+        $response = $a([
+            'http_method' => 'GET',
+            'headers'     => ['Host'   => [Server::$host]],
+            'client' => [
+                'curl' => [
+                    CURLOPT_FOLLOWLOCATION => true
+                ]
+            ]
+        ])->wait();
+
+        $this->assertEquals(1, $response['transfer_stats']['redirect_count']);
+        $this->assertEquals('http://127.0.0.1:8125/foo', $response['effective_url']);
+        $this->assertEquals(['bar'], $response['headers']['Foo']);
+        $this->assertEquals(200, $response['status']);
+        $this->assertFalse(Core::hasHeader($response, 'Location'));
+    }
 }
 
 }

@@ -76,22 +76,44 @@ class CurlFactory
             $response['effective_url'] = $response['transfer_stats']['url'];
         }
 
-        if (isset($headers[0])) {
-            $startLine = explode(' ', array_shift($headers), 3);
-            // Trim out 100-Continue start-lines
-            if ($startLine[1] == '100') {
-                $startLine = explode(' ', array_shift($headers), 3);
-            }
-            $response['headers'] = Core::headersFromLines($headers);
+        if (!empty($headers)) {
+            list($startLine, $headerList) = self::parseHeaderOutput($headers);
+            $response['headers'] = $headerList;
             $response['status'] = isset($startLine[1]) ? (int) $startLine[1] : null;
             $response['reason'] = isset($startLine[2]) ? $startLine[2] : null;
             $response['body'] = $body;
             Core::rewindBody($response);
         }
 
-        return !empty($response['curl']['errno']) || !isset($startLine[1])
+        return !empty($response['curl']['errno']) || !isset($response['status'])
             ? self::createErrorResponse($handler, $request, $response)
             : $response;
+    }
+
+    private static function parseHeaderOutput(array $lines)
+    {
+        // Curl returns one or more repeated lines in this format:
+        // 1. Start-Line
+        // 2. 1 or more Header lines
+        // 3. empty line
+        // So, we pop the last empty line (it might be the last or first).
+        array_pop($lines);
+        $startLine = '';
+        $headers = [];
+
+        // Pop lines off until the next empty line or the last line is popped.
+        while ($line = array_pop($lines)) {
+            if (substr($line, 0, 5) === 'HTTP/') {
+                $startLine = $line;
+            } else {
+                $parts = explode(':', $line, 2);
+                $headers[trim($parts[0])][] = isset($parts[1])
+                    ? trim($parts[1])
+                    : null;
+            }
+        }
+
+        return [explode(' ', $startLine, 3), array_reverse($headers)];
     }
 
     private static function createErrorResponse(
@@ -168,11 +190,8 @@ class CurlFactory
             CURLOPT_HEADER         => false,
             CURLOPT_CONNECTTIMEOUT => 150,
             CURLOPT_HEADERFUNCTION => function ($ch, $h) use (&$headers) {
-                $length = strlen($h);
-                if ($value = trim($h)) {
-                    $headers[] = trim($h);
-                }
-                return $length;
+                $headers[] = trim($h);
+                return strlen($h);
             },
         ];
 
