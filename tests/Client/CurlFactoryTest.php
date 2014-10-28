@@ -404,6 +404,19 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($content, Core::body($response));
     }
 
+    public function testProtocolVersion()
+    {
+        Server::flush();
+        Server::enqueue([['status' => 200]]);
+        $a = new CurlMultiHandler();
+        $a([
+            'http_method' => 'GET',
+            'headers'     => ['host' => [Server::$host]],
+            'version'     => 1.0,
+        ]);
+        $this->assertEquals(CURL_HTTP_VERSION_1_0, $_SERVER['_curl'][CURLOPT_HTTP_VERSION]);
+    }
+
     /**
      * @expectedException \InvalidArgumentException
      */
