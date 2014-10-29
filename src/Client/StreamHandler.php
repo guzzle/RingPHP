@@ -225,7 +225,7 @@ class StreamHandler
             'http' => [
                 'method'           => $request['http_method'],
                 'header'           => $headers,
-                'protocol_version' => '1.1',
+                'protocol_version' => isset($request['version']) ? $request['version'] : 1.1,
                 'ignore_errors'    => true,
                 'follow_location'  => 0,
             ],

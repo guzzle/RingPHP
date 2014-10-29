@@ -195,6 +195,10 @@ class CurlFactory
             },
         ];
 
+        if (isset($request['version'])) {
+            $options[CURLOPT_HTTP_VERSION] = $request['version'] == 1.1 ? CURL_HTTP_VERSION_1_1 : CURL_HTTP_VERSION_1_0;
+        }
+
         if (defined('CURLOPT_PROTOCOLS')) {
             $options[CURLOPT_PROTOCOLS] = CURLPROTO_HTTP | CURLPROTO_HTTPS;
         }
