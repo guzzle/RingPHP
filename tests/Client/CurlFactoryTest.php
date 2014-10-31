@@ -583,7 +583,7 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'http_method' => 'GET',
             'headers'     => [
                 'host'           => [Server::$host],
-                'content-length' => 3,
+                'content-length' => [3],
             ],
             'body' => 'foo',
         ]);
@@ -760,6 +760,32 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(['bar'], $response['headers']['Foo']);
         $this->assertEquals(200, $response['status']);
         $this->assertFalse(Core::hasHeader($response, 'Location'));
+    }
+
+    public function testMaintainsMultiHeaderOrder()
+    {
+        Server::flush();
+        Server::enqueue([
+            [
+                'status'  => 200,
+                'headers' => [
+                    'Content-Length' => ['0'],
+                    'Foo' => ['a', 'b'],
+                    'foo' => ['c', 'd'],
+                ]
+            ]
+        ]);
+
+        $a = new CurlMultiHandler();
+        $response = $a([
+            'http_method' => 'GET',
+            'headers'     => ['Host'   => [Server::$host]]
+        ])->wait();
+
+        $this->assertEquals(
+            ['a', 'b', 'c', 'd'],
+            Core::headerLines($response, 'Foo')
+        );
     }
 }
 
