@@ -101,8 +101,8 @@ class CurlFactory
         $startLine = '';
         $headers = [];
 
-        // Pop lines off until the next empty line or the last line is popped.
-        while ($line = array_pop($lines)) {
+        // Shift lines off until the next empty line or the last line is popped.
+        while ($line = array_shift($lines)) {
             if (substr($line, 0, 5) === 'HTTP/') {
                 $startLine = $line;
             } else {
@@ -113,7 +113,7 @@ class CurlFactory
             }
         }
 
-        return [explode(' ', $startLine, 3), array_reverse($headers)];
+        return [explode(' ', $startLine, 3), $headers];
     }
 
     private static function createErrorResponse(
