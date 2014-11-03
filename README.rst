@@ -36,12 +36,9 @@ without tying your application to a specific implementation.
     $response->wait();
 
 RingPHP is inspired by Clojure's `Ring <https://github.com/ring-clojure/ring>`_,
-which, in turn, was inspired by Python's WSGI and Ruby's Rack.
-
-..  note::
-
-    RingPHP is utilized as the handler layer in
-    `Guzzle <http://guzzlephp.org>`_ 5.0+ to send HTTP requests.
+which, in turn, was inspired by Python's WSGI and Ruby's Rack. RingPHP is
+utilized as the handler layer in `Guzzle <http://guzzlephp.org>`_ 5.0+ to send
+HTTP requests.
 
 Documentation
 -------------

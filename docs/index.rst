@@ -15,16 +15,36 @@ without tying your application to a specific implementation.
 .. toctree::
    :maxdepth: 2
 
-   spec
-   futures
-   client_middleware
-   client_handlers
-   testing
+    spec
+    futures
+    client_middleware
+    client_handlers
+    testing
+
+.. code-block:: php
+
+    <?php
+    require 'vendor/autoload.php';
+
+    use GuzzleHttp\Ring\Client\CurlHandler;
+
+    $handler = new CurlHandler();
+    $response = $handler([
+        'http_method' => 'GET',
+        'uri'         => '/',
+        'headers'     => [
+            'host'  => ['www.google.com'],
+            'x-foo' => ['baz']
+        ]
+    ]);
+
+    $response->then(function (array $response) {
+        echo $response['status'];
+    });
+
+    $response->wait();
 
 RingPHP is inspired by Clojure's `Ring <https://github.com/ring-clojure/ring>`_,
-which, in turn, was inspired by Python's WSGI and Ruby's Rack.
-
-..  note::
-
-    RingPHP is utilized as the handler layer in
-    `Guzzle <http://guzzlephp.org>`_ 5.0+ to send HTTP requests.
+which, in turn, was inspired by Python's WSGI and Ruby's Rack. RingPHP is
+utilized as the handler layer in `Guzzle <http://guzzlephp.org>`_ 5.0+ to send
+HTTP requests.
