@@ -12,6 +12,29 @@ By abstracting the implementation details of different HTTP clients and
 servers, RingPHP allows you to utilize pluggable HTTP clients and servers
 without tying your application to a specific implementation.
 
+.. code-block:: php
+
+    <?php
+    require 'vendor/autoload.php';
+
+    use GuzzleHttp\Ring\Client\CurlHandler;
+
+    $handler = new CurlHandler();
+    $response = $handler([
+        'http_method' => 'GET',
+        'uri'         => '/',
+        'headers'     => [
+            'host'  => ['www.google.com'],
+            'x-foo' => ['baz']
+        ]
+    ]);
+
+    $response->then(function (array $response) {
+        echo $response['status'];
+    });
+
+    $response->wait();
+
 RingPHP is inspired by Clojure's `Ring <https://github.com/ring-clojure/ring>`_,
 which, in turn, was inspired by Python's WSGI and Ruby's Rack.
 
