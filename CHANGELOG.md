@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.0.3 - 2014-11-03
+
+* Setting the `header` stream option as a string to be compatible with GAE.
+* Header parsing now ensures that header order is maintained in the parsed
+  message.
+
 ## 1.0.2 - 2014-10-28
 
 * Now correctly honoring a `version` option is supplied in a request.
