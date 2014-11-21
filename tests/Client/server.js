@@ -32,6 +32,10 @@
 var http = require('http');
 var url = require('url');
 
+var authentifiers = {
+    // Authentifiers do not get initialized now, but will be on demand. This avoids requiring the dependency to http-auth for standard operations, and the performance hit at startup.
+};
+
 /**
  * Guzzle node.js server
  * @class
@@ -140,7 +144,34 @@ var GuzzleServer = function(port, log) {
 
             // Called when the request completes
             req.addListener('end', function() {
-                receivedRequest(request, req, res);
+                if ((securedAreaUriParts = parts.pathname.match(/^\/secure\/by-(digest)(\/qop-([^\/]*))?\//))) {
+                    if (!authentifiers.digest) {
+                        var auth = require('http-auth');
+                        var digestParams = {
+                            realm: 'Digest Test'
+                        };
+                        if (securedAreaUriParts[2]) {
+                            digestParams.qop = securedAreaUriParts[2];
+                        }
+                        authentifiers.digest = auth.digest(digestParams, function(username, callback) {
+                                    var md5 = function(input) {
+                                    var crypto = require('crypto');
+                                    var hasher = crypto.createHash('md5');
+                                    hasher.update(input);
+                                    return hasher.digest('hex');
+                                }
+                                
+                                var hash = md5("me:"+digestParams.realm+":test");
+                                callback(hash);
+                            }
+                        );
+                    }
+                    authentifiers.digest.check(req, res, function(req, res) {
+                        receivedRequest(request, req, res);
+                    });
+                } else {
+                    receivedRequest(request, req, res);
+                }
             });
         });
 
