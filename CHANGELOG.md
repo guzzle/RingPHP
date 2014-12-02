@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.0.4 - 2014-12-01
+
+* Added support for older versions of cURL that do not have CURLOPT_TIMEOUT_MS.
+* Setting debug to `false` does not enable debug output.
+* Added a fix to the StreamHandler to return a `FutureArrayInterface` when an
+  error occurs.
+
 ## 1.0.3 - 2014-11-03
 
 * Setting the `header` stream option as a string to be compatible with GAE.
