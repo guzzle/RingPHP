@@ -150,17 +150,25 @@ class StreamHandler
      */
     private function createResource(callable $callback)
     {
-        // Turn off error reporting while we try to initiate the request
-        $level = error_reporting(0);
-        $resource = call_user_func($callback);
-        error_reporting($level);
+        $errors = null;
+        set_error_handler(function ($_, $msg, $file, $line) use (&$errors) {
+            $errors[] = [
+                'message' => $msg,
+                'file'    => $file,
+                'line'    => $line
+            ];
+            return true;
+        });
 
-        // If the resource could not be created, then grab the last error and
-        // throw an exception.
-        if (!is_resource($resource)) {
+        $resource = $callback();
+        restore_error_handler();
+
+        if (!$resource) {
             $message = 'Error creating resource: ';
-            foreach ((array) error_get_last() as $key => $value) {
-                $message .= "[{$key}] {$value} ";
+            foreach ($errors as $err) {
+                foreach ($err as $key => $value) {
+                    $message .= "[$key] $value" . PHP_EOL;
+                }
             }
             throw new RingException(trim($message));
         }
