@@ -79,7 +79,13 @@ var GuzzleServer = function(port, log) {
         }
         if (!loadAuthentifier[typeId]) {
             if (!auth) {
-                auth = require('http-auth');
+                try {
+                    auth = require('http-auth');
+                } catch (e) {
+                    if (e.code == 'MODULE_NOT_FOUND') {
+                        return;
+                    }
+                }
             }
             switch (type) {
                 case 'digest':
@@ -104,6 +110,11 @@ var GuzzleServer = function(port, log) {
         var securedAreaUriParts = request.uri.match(/^\/secure\/by-(digest)(\/qop-([^\/]*))?(\/.*)$/);
         if (securedAreaUriParts) {
             var authentifier = loadAuthentifier(securedAreaUriParts[1], { qop: securedAreaUriParts[2] });
+            if (!authentifier) {
+                res.writeHead(501, 'HTTP authentication not implemented', { 'Content-Length': 0 });
+                res.end();
+                return;
+            }
             authentifier.check(req, res, function(req, res) {
                 req.url = securedAreaUriParts[4];
                 requestHandlerCallback(request, req, res);
