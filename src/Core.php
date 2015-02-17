@@ -131,7 +131,7 @@ class Core
 
         foreach ($lines as $line) {
             $parts = explode(':', $line, 2);
-            $headers[trim($parts[0])][] = isset($parts[1])
+            $headers[strtolower(trim($parts[0]))][] = isset($parts[1])
                 ? trim($parts[1])
                 : null;
         }
