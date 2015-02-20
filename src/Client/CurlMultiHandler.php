@@ -134,6 +134,12 @@ class CurlMultiHandler
             } while ($mrc === CURLM_CALL_MULTI_PERFORM);
 
             $this->processMessages();
+            
+            // Start processing any new requests, so they are started immediately in
+            // the next 'curl_multi_select' call.
+            do {
+                $mrc = curl_multi_exec($this->mh, $this->active);
+            } while ($mrc === CURLM_CALL_MULTI_PERFORM);
 
             // If there are delays but no transfers, then sleep for a bit.
             if (!$this->active && $this->delays) {
