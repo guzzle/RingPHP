@@ -310,7 +310,7 @@ class StreamHandler
 
     private function add_progress(array $request, &$options, $value, &$params)
     {
-        $fn = function ($code, $_, $_, $_, $transferred, $total) use ($value) {
+        $fn = function ($code, $_1, $_2, $_3, $transferred, $total) use ($value) {
             if ($code == STREAM_NOTIFY_PROGRESS) {
                 $value($total, $transferred, null, null);
             }
