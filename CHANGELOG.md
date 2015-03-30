@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.0.7 - 2015-03-29
+
+* PHP 7 fixes.
+
 ## 1.0.6 - 2015-02-26
 
 * Bug fix: futures now extend from React's PromiseInterface to ensure that they
