@@ -284,13 +284,14 @@ class StreamHandler
             }
         } elseif ($value === false) {
             $options['ssl']['verify_peer'] = false;
+            $options['ssl']['allow_self_signed'] = true;
             return;
         } else {
             throw new RingException('Invalid verify request option');
         }
 
         $options['ssl']['verify_peer'] = true;
-        $options['ssl']['allow_self_signed'] = true;
+        $options['ssl']['allow_self_signed'] = false;
     }
 
     private function add_cert(array $request, &$options, $value, &$params)
