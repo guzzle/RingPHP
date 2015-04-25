@@ -787,6 +787,22 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             Core::headerLines($response, 'Foo')
         );
     }
+
+    /**
+     * @expectedException \RuntimeException
+     * @expectedExceptionMessage Directory /path/to/does/not does not exist for save_to value of /path/to/does/not/exist.txt
+     */
+    public function testThrowsWhenDirNotFound()
+    {
+        $request = [
+            'http_method' => 'GET',
+            'headers' => ['host' => [Server::$url]],
+            'client' => ['save_to' => '/path/to/does/not/exist.txt'],
+        ];
+
+        $f = new CurlFactory();
+        $f($request);
+    }
 }
 
 }

@@ -394,6 +394,13 @@ class CurlFactory
             case 'save_to':
 
                 if (is_string($value)) {
+                    if (!is_dir(dirname($value))) {
+                        throw new \RuntimeException(sprintf(
+                            'Directory %s does not exist for save_to value of %s',
+                            dirname($value),
+                            $value
+                        ));
+                    }
                     $value = new LazyOpenStream($value, 'w+');
                 }
 
