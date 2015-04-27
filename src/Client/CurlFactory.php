@@ -80,6 +80,7 @@ class CurlFactory
             $startLine = explode(' ', array_shift($headers), 3);
             $headerList = Core::headersFromLines($headers);
             $response['headers'] = $headerList;
+            $response['version'] = isset($startLine[0]) ? substr($startLine[0], 5) : null;
             $response['status'] = isset($startLine[1]) ? (int) $startLine[1] : null;
             $response['reason'] = isset($startLine[2]) ? $startLine[2] : null;
             $response['body'] = $body;

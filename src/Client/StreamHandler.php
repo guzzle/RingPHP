@@ -44,6 +44,7 @@ class StreamHandler
         $this->lastHeaders = null;
         $parts = explode(' ', array_shift($hdrs), 3);
         $response = [
+            'version'        => substr($parts[0], 5),
             'status'         => $parts[1],
             'reason'         => isset($parts[2]) ? $parts[2] : null,
             'headers'        => Core::headersFromLines($hdrs),

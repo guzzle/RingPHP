@@ -20,6 +20,7 @@ class StreamHandlerTest extends \PHPUnit_Framework_TestCase
             ],
         ]);
 
+        $this->assertEquals('1.1', $response['version']);
         $this->assertEquals(200, $response['status']);
         $this->assertEquals('OK', $response['reason']);
         $this->assertEquals(['Bar'], $response['headers']['Foo']);
