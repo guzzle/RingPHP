@@ -611,6 +611,19 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('0', Core::firstHeader($received, 'content-length'));
     }
 
+    public function testParseProtocolVersion()
+    {
+        $res = CurlFactory::createResponse(
+            function () {},
+            [],
+            ['curl' => ['errno' => null]],
+            ['HTTP/1.1 200 Ok'],
+            null
+        );
+
+        $this->assertSame('1.1', $res['version']);
+    }
+
     public function testFailsWhenNoResponseAndNoBody()
     {
         $res = CurlFactory::createResponse(function () {}, [], [], [], null);
