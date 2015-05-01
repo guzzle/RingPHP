@@ -57,7 +57,26 @@ class CurlHandler
         }
     }
 
+    /**
+     * @param array $request
+     *
+     * @return CompletedFutureArray
+     */
     public function __invoke(array $request)
+    {
+        return new CompletedFutureArray(
+            $this->_invokeAsArray($request)
+        );
+    }
+
+    /**
+     * @internal
+     *
+     * @param array $request
+     *
+     * @return array
+     */
+    public function _invokeAsArray(array $request)
     {
         $factory = $this->factory;
 
@@ -74,9 +93,7 @@ class CurlHandler
         $response['transfer_stats'] = array_merge($response['transfer_stats'], $response['curl']);
         $this->releaseEasyHandle($h);
 
-        return new CompletedFutureArray(
-            CurlFactory::createResponse($this, $request, $response, $hd, $bd)
-        );
+        return CurlFactory::createResponse([$this, '_invokeAsArray'], $request, $response, $hd, $bd);
     }
 
     private function checkoutEasyHandle()
