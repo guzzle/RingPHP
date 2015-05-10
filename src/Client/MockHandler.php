@@ -8,7 +8,7 @@ use GuzzleHttp\Ring\Future\FutureArrayInterface;
 /**
  * Ring handler that returns a canned response or evaluated function result.
  */
-class MockHandler
+class MockHandler implements HandlerInterface
 {
     /** @var callable|array|FutureArrayInterface */
     private $result;
