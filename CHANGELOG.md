@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.1.0 - 2015-05-19
+
+* Added `CURL_HTTP_VERSION_2_0`
+* The PHP stream wrapper handler now sets `allow_self_signed` to `false` to
+  match the cURL handler when `verify` is set to `true` or a certificate file.
+* Ensuring that a directory exists before using the `save_to` option.
+* Response protocol version is now correctly extracted from a response.
+* Fixed a bug in which the result of `CurlFactory::retryFailedRewind` did not
+  return an array.
+
 ## 1.0.7 - 2015-03-29
 
 * PHP 7 fixes.
