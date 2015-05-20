@@ -232,6 +232,8 @@ class CurlMultiHandler
                 $entry['response']['curl']['errno'] = $done['result'];
                 if (function_exists('curl_strerror')) {
                     $entry['response']['curl']['error'] = curl_strerror($done['result']);
+                } else {
+                    $entry['response']['curl']['error'] = curl_error($done['handle']);
                 }
             }
 
