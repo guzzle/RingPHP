@@ -39,7 +39,7 @@ composed behavior.
 
     $response = $handler([
         'http_method' => 'GET',
-        'headers'     => ['Host' => ['httpbin.org']
+        'headers'     => ['Host' => ['httpbin.org']]
     ]);
 
 Modifying Responses
@@ -87,7 +87,7 @@ incoming request and using the ``Core::proxy`` function.
 
     $response = $handler([
         'http_method' => 'GET',
-        'headers'     => ['Host' => ['httpbin.org']
+        'headers'     => ['Host' => ['httpbin.org']]
     ]);
 
     assert($response['headers']['X-Header'] == 'hello!');
@@ -121,14 +121,14 @@ middleware.
     // Send the request using the streaming handler.
     $response = $streamingHandler([
         'http_method' => 'GET',
-        'headers'     => ['Host' => ['www.google.com'],
+        'headers'     => ['Host' => ['www.google.com']],
         'stream'      => true
     ]);
 
     // Send the request using the default handler.
     $response = $streamingHandler([
         'http_method' => 'GET',
-        'headers'     => ['Host' => ['www.google.com']
+        'headers'     => ['Host' => ['www.google.com']]
     ]);
 
 Future Middleware
@@ -154,12 +154,12 @@ middleware.
     // Send the request using the blocking CurlHandler.
     $response = $futureHandler([
         'http_method' => 'GET',
-        'headers'     => ['Host' => ['www.google.com']
+        'headers'     => ['Host' => ['www.google.com']]
     ]);
 
     // Send the request using the non-blocking CurlMultiHandler.
     $response = $futureHandler([
         'http_method' => 'GET',
-        'headers'     => ['Host' => ['www.google.com'],
+        'headers'     => ['Host' => ['www.google.com']],
         'future'      => true
     ]);
