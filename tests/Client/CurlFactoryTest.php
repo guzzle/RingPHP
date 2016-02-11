@@ -364,7 +364,10 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
             'client'      => ['decode_content' => true],
         ]);
         $response->wait();
-        $this->assertEquals('test', Core::body($response));
+        $body = Core::body($response);
+        $this->assertEquals('test', $body);
+        $this->assertEquals(strlen($body), Core::header($response, 'Content-Length'));
+        $this->assertNull(Core::header($response, 'Content-Encoding'));
         $this->assertEquals('', $_SERVER['_curl'][CURLOPT_ENCODING]);
         $sent = Server::received()[0];
         $this->assertNull(Core::header($sent, 'Accept-Encoding'));
@@ -386,7 +389,8 @@ class CurlFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('gzip', $_SERVER['_curl'][CURLOPT_ENCODING]);
         $sent = Server::received()[0];
         $this->assertEquals('gzip', Core::header($sent, 'Accept-Encoding'));
-        $this->assertEquals('test', Core::body($response));
+        $this->assertEquals(strlen(Core::body($response)), Core::header($response, 'Content-Length'));
+        $this->assertNull(Core::header($response, 'Content-Encoding'));
     }
 
     public function testDoesNotForceDecode()
