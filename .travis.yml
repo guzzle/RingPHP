@@ -37,4 +37,4 @@ before_script:
   - ~/.nvm/nvm.sh run v0.6.14
 
 script:
-  - TEST_COMMAND
+  - $TEST_COMMAND
