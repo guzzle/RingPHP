@@ -13,7 +13,7 @@ use GuzzleHttp\Stream\Utils;
 /**
  * RingPHP client handler that uses PHP's HTTP stream wrapper.
  */
-class StreamHandler
+class StreamHandler implements HandlerInterface
 {
     private $options;
     private $lastHeaders;

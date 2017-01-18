@@ -171,3 +171,4 @@ Handlers need to follow a few simple rules:
    ``GuzzleHttp\Ring\Core::doSleep($request)`` function handle this for them.
 3. Always return an instance of ``GuzzleHttp\Ring\Future\FutureArrayInterface``.
 4. Complete any outstanding requests when the handler is destructed.
+5. They have to implement HandlerInterface
