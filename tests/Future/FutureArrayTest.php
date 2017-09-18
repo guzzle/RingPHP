@@ -53,4 +53,24 @@ class FutureArrayTest extends \PHPUnit_Framework_TestCase
         $f = new FutureArray($deferred->promise(), function () {});
         $f->foo;
     }
+
+    public function testAfterThenActsLikeFutureArray()
+    {
+        $deferred = new Deferred();
+        $f = new FutureArray(
+            $deferred->promise(),
+            function () use (&$c, $deferred) {
+                $deferred->resolve(['status' => 200]);
+            }
+        );
+        $f = $f->then(function(array $result) {
+            $result['status']++;
+
+            return $result;
+        });
+
+        $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureArray', $f);
+        $this->assertFalse($this->readAttribute($f, 'isRealized'));
+        $this->assertEquals(201, $f['status']);
+    }
 }

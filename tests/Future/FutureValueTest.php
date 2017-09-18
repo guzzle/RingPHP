@@ -106,4 +106,24 @@ class FutureValueTest extends \PHPUnit_Framework_TestCase
         );
         $f->wait();
     }
+
+    public function testAfterThenActsLikeFutureValue()
+    {
+        $deferred = new Deferred();
+        $f = new FutureValue(
+            $deferred->promise(),
+            function () use ($deferred) {
+                $deferred->resolve(['status' => 200]);
+            }
+        );
+        $f = $f->then(function(array $result) {
+            $result['status']++;
+
+            return $result;
+        });
+
+        $this->assertInstanceOf('GuzzleHttp\Ring\Future\FutureValue', $f);
+        $this->assertFalse($this->readAttribute($f, 'isRealized'));
+        $this->assertEquals(201, $f->wait()['status']);
+    }
 }

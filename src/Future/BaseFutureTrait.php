@@ -76,7 +76,7 @@ trait BaseFutureTrait
         callable $onRejected = null,
         callable $onProgress = null
     ) {
-        return $this->wrappedPromise->then($onFulfilled, $onRejected, $onProgress);
+        return new self($this->wrappedPromise->then($onFulfilled, $onRejected, $onProgress), $this->waitfn, $this->cancelfn);
     }
 
     public function cancel()
