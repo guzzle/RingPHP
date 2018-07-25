@@ -274,7 +274,7 @@ class CoreTest extends \PHPUnit_Framework_TestCase
      */
     public function testDescribesType($input, $output)
     {
-        $this->assertEquals($output, Core::describeType($input));
+        $this->assertContains($output, Core::describeType($input));
     }
 
     public function testDoesSleep()
