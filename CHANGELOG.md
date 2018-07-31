@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- `continue` keyword usage on PHP 7.3
+
 
 ## [1.1.0] - 2015-05-19
 
