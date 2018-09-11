@@ -281,6 +281,31 @@ class Core
                 && method_exists($message['body'], '__toString'));
     }
 
+
+    /**
+     * Return the body size of the provided message if possible.
+     *
+     * @param array $message Message that contains a 'body' field.
+     *
+     * @return int|null Returns null if is no able to read the size
+     */
+    public static function sizeOfBody($message)
+    {
+        if ($message['body'] instanceof StreamInterface) {
+            return $message['body']->getSize();
+        }
+
+        if (is_resource($message['body'])) {
+            return fstat($message['body'])['size'];
+        }
+
+        if (is_string($message['body'])
+            || (is_object($message['body'])
+                && method_exists($message['body'], '__toString'))) {
+            return strlen((string) $message['body']);
+        }
+    }
+
     /**
      * Debug function used to describe the provided value type and class.
      *

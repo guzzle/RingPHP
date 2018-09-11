@@ -85,11 +85,26 @@ class CurlFactory
             $response['reason'] = isset($startLine[2]) ? $startLine[2] : null;
             $response['body'] = $body;
             Core::rewindBody($response);
+            $response = self::fixDecodedResponseContentHeaders($request, $response);
         }
 
         return !empty($response['curl']['errno']) || !isset($response['status'])
             ? self::createErrorResponse($handler, $request, $response)
             : $response;
+    }
+
+    private static function fixDecodedResponseContentHeaders(array $request, array $response)
+    {
+        if (isset($request['client'])
+            && isset($request['client']['decode_content'])
+            && $request['client']['decode_content']
+            && Core::hasHeader($response, 'Content-Encoding')
+        ) {
+            $response = Core::removeHeader($response, 'Content-Encoding');
+            $response = Core::setHeader($response, 'Content-Length', array(Core::sizeOfBody($response)));
+        }
+
+        return $response;
     }
 
     private static function createErrorResponse(

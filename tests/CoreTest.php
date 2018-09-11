@@ -256,6 +256,28 @@ class CoreTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(Core::rewindBody(['body' => new StrClass()]));
     }
 
+    public function testBodySizeOfGuzzleStreams()
+    {
+        $str = Stream::factory('foobar');
+        $this->assertEquals(6, Core::sizeOfBody(['body' => $str]));
+    }
+
+    public function testBodySizeOfStreams()
+    {
+        $str = Stream::factory('foobar')->detach();
+        $this->assertEquals(6, Core::sizeOfBody(['body' => $str]));
+    }
+
+    public function testBodySizeOfStrings()
+    {
+        $this->assertEquals(6, Core::sizeOfBody(['body' => 'foobar']));
+    }
+
+    public function testBodySizeOfToStrings()
+    {
+        $this->assertEquals(3, Core::sizeOfBody(['body' => new StrClass()]));
+    }
+
     public function typeProvider()
     {
         return [
